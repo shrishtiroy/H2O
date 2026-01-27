@@ -47,6 +47,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from utils_hh.modify_llama import convert_kvcache_llama_heavy_recent, LlamaAttention_heavy_hitter
 from utils_hh.modify_gptneox import convert_kvcache_gpt_neox_heavy_recent, GPTNeoXAttention_Mask
 from utils_hh.modify_opt import convert_kvcache_opt_heavy_recent, OPTAttention_Mask
+from utils_hh.modify_qwen import convert_kvcache_qwen_heavy_recent, QwenAttention_heavy_hitter
 
 
 logging.basicConfig(
@@ -93,6 +94,7 @@ ENABLE_Heavy_Hitter_FUNCTIONS = {
     "llama": convert_kvcache_llama_heavy_recent,
     "opt": convert_kvcache_opt_heavy_recent,
     "gpt_neox": convert_kvcache_gpt_neox_heavy_recent,
+    "qwen": convert_kvcache_qwen_heavy_recent,
 }
 
 

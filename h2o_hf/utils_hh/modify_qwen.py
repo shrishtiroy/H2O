@@ -57,26 +57,30 @@ def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
 
 class QwenAttention_heavy_hitter(nn.Module):
     """
-    Qwen Attention with Heavy-Hitter Oracle (H2O) for KV cache eviction.
+    Qwen2VL Attention with Heavy-Hitter Oracle (H2O) for KV cache eviction.
 
-    Follows the exact same H2O logic as LlamaAttention_heavy_hitter:
-    - On first forward: compute budgets based on initial sequence length
-    - On subsequent forwards: accumulate attention scores
-    - Evict tokens that are neither heavy-hitters nor recent
+    This matches the Qwen2VLAttention interface exactly:
+    - Uses position_embeddings (cos, sin) for rotary
+    - Uses past_key_values.update() for cache (in-place update)
+    - Returns only 2 values: (attn_output, attn_weights)
 
     Supports Grouped Query Attention (GQA) used in Qwen models.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, layer_idx: Optional[int] = None):
         super().__init__()
         self.config = config
+        self.layer_idx = layer_idx
         self.hidden_size = config.hidden_size
         self.num_heads = config.num_attention_heads
-        self.head_dim = self.hidden_size // self.num_heads
+        self.head_dim = getattr(config, 'head_dim', self.hidden_size // self.num_heads)
         self.num_key_value_heads = getattr(config, 'num_key_value_heads', self.num_heads)
         self.num_key_value_groups = self.num_heads // self.num_key_value_heads
-        self.max_position_embeddings = getattr(config, 'max_position_embeddings', 32768)
-        self.rope_theta = getattr(config, 'rope_theta', 10000.0)
+        self.scaling = self.head_dim ** -0.5
+        self.attention_dropout = getattr(config, 'attention_dropout', 0.0)
+
+        # Get rope_scaling config for multimodal rotary
+        self.rope_scaling = getattr(config, 'rope_scaling', None)
 
         if (self.head_dim * self.num_heads) != self.hidden_size:
             raise ValueError(
@@ -84,22 +88,11 @@ class QwenAttention_heavy_hitter(nn.Module):
                 f" and `num_heads`: {self.num_heads})."
             )
 
-        # Qwen uses bias=True for QKV projections
+        # Qwen2VL uses bias=True for QKV projections
         self.q_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=True)
         self.k_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias=True)
         self.v_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias=True)
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
-
-        # Rotary embeddings - try to use Qwen's implementation
-        try:
-            self.rotary_emb = Qwen2VLRotaryEmbedding(
-                self.head_dim,
-                max_position_embeddings=self.max_position_embeddings,
-                base=self.rope_theta,
-            )
-        except:
-            # Fallback: will need to handle rotary externally
-            self.rotary_emb = None
 
         # H2O parameters - these persist across forward passes
         self.heavy_budget_ratio = config.heavy_ratio
@@ -120,34 +113,22 @@ class QwenAttention_heavy_hitter(nn.Module):
         self.cache_budget = None
         self.previous_scores = None
 
-    def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
-        return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
-
     def forward(
         self,
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_value: Optional[Tuple[torch.Tensor]] = None,
+        past_key_values: Optional[torch.Tensor] = None,  # Note: Qwen2VL uses past_key_values (plural)
         output_attentions: bool = False,
         use_cache: bool = False,
-        **kwargs,  # Accept additional kwargs for compatibility
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
+        cache_position: Optional[torch.LongTensor] = None,
+        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        **kwargs,
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
         Forward pass with H2O KV cache eviction.
 
-        Args:
-            hidden_states: (batch, seq_len, hidden_size)
-            attention_mask: Causal attention mask
-            position_ids: Position indices for rotary embeddings
-            past_key_value: Cached (key, value) tensors
-            output_attentions: Whether to return attention weights
-            use_cache: Whether to return updated KV cache
-
-        Returns:
-            attn_output: (batch, seq_len, hidden_size)
-            attn_weights: Optional attention weights
-            past_key_value: Updated KV cache if use_cache=True
+        Matches Qwen2VLAttention interface - returns only 2 values.
         """
         bsz, q_len, _ = hidden_states.size()
 
@@ -157,96 +138,118 @@ class QwenAttention_heavy_hitter(nn.Module):
         value_states = self.v_proj(hidden_states)
 
         # Reshape: (bsz, seq_len, num_heads, head_dim) -> (bsz, num_heads, seq_len, head_dim)
-        query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
-        value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        query_states = query_states.view(bsz, q_len, -1, self.head_dim).transpose(1, 2)
+        key_states = key_states.view(bsz, q_len, -1, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(bsz, q_len, -1, self.head_dim).transpose(1, 2)
 
-        # Determine KV sequence length
-        kv_seq_len = key_states.shape[-2]
-        if past_key_value is not None:
-            kv_seq_len += past_key_value[0].shape[-2]
-
-        # Apply rotary position embeddings if available
-        if self.rotary_emb is not None and position_ids is not None:
-            cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
-            # Apply rotary embeddings to Q and K
-            # Note: Qwen may use different apply_rotary_pos_emb signature
+        # Apply rotary position embeddings (Qwen2VL style)
+        if position_embeddings is not None:
+            cos, sin = position_embeddings
+            # Try to use Qwen2VL's multimodal rotary
             try:
-                from transformers.models.llama.modeling_llama import apply_rotary_pos_emb
-                query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
-            except:
-                pass  # Skip rotary if not compatible
+                from transformers.models.qwen2_vl.modeling_qwen2_vl import apply_multimodal_rotary_pos_emb
+                if self.rope_scaling is not None and 'mrope_section' in self.rope_scaling:
+                    query_states, key_states = apply_multimodal_rotary_pos_emb(
+                        query_states, key_states, cos, sin, self.rope_scaling["mrope_section"]
+                    )
+                else:
+                    # Fallback to standard rotary
+                    from transformers.models.llama.modeling_llama import apply_rotary_pos_emb
+                    query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
+            except Exception:
+                # Skip rotary if not compatible
+                pass
 
-        # Concatenate with past KV cache
-        if past_key_value is not None:
-            key_states = torch.cat([past_key_value[0], key_states], dim=2)
-            value_states = torch.cat([past_key_value[1], value_states], dim=2)
+        # Handle KV cache (Qwen2VL uses Cache object with .update() method)
+        if past_key_values is not None:
+            # Qwen2VL style: cache is an object with .update() method
+            if hasattr(past_key_values, 'update'):
+                cache_kwargs = {}
+                if position_embeddings is not None:
+                    cos, sin = position_embeddings
+                    cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
+                key_states, value_states = past_key_values.update(
+                    key_states, value_states, self.layer_idx, cache_kwargs
+                )
+            else:
+                # Fallback: tuple-based cache (old style)
+                key_states = torch.cat([past_key_values[0], key_states], dim=2)
+                value_states = torch.cat([past_key_values[1], value_states], dim=2)
 
-        past_key_value = (key_states, value_states) if use_cache else None
+        kv_seq_len = key_states.shape[-2]
 
         # Repeat KV heads for Grouped Query Attention
-        key_states = repeat_kv(key_states, self.num_key_value_groups)
-        value_states = repeat_kv(value_states, self.num_key_value_groups)
+        key_states_repeated = repeat_kv(key_states, self.num_key_value_groups)
+        value_states_repeated = repeat_kv(value_states, self.num_key_value_groups)
 
         # Compute attention weights: (bsz, num_heads, q_len, kv_seq_len)
-        attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
-
-        if attn_weights.size() != (bsz, self.num_heads, q_len, kv_seq_len):
-            raise ValueError(
-                f"Attention weights should be of size {(bsz, self.num_heads, q_len, kv_seq_len)}, but is"
-                f" {attn_weights.size()}"
-            )
+        attn_weights = torch.matmul(query_states, key_states_repeated.transpose(2, 3)) * self.scaling
 
         # Apply causal attention mask
         if attention_mask is not None:
-            if attention_mask.size() != (bsz, 1, q_len, kv_seq_len):
-                raise ValueError(
-                    f"Attention mask should be of size {(bsz, 1, q_len, kv_seq_len)}, but is {attention_mask.size()}"
-                )
-            attn_weights = attn_weights + attention_mask
-            attn_weights = torch.max(attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min))
+            causal_mask = attention_mask[:, :, :, :kv_seq_len]
+            attn_weights = attn_weights + causal_mask
 
         # ===== H2O LOGIC: Apply mask from previous forward =====
+        # The mask is computed at the END of each forward and applied at the START of the NEXT forward.
+        # On first forward, attention_masks_next is None so no mask is applied.
         if self.attention_masks_next is not None:
-            attn_weights = attn_weights * self.attention_masks_next + (1 - self.attention_masks_next) * torch.finfo(attn_weights.dtype).min
+            # Ensure mask matches current kv_seq_len
+            mask_len = self.attention_masks_next.shape[-1]
+            if mask_len == kv_seq_len:
+                # Apply mask: keep masked positions, set others to -inf
+                attn_weights = attn_weights * self.attention_masks_next + \
+                    (1 - self.attention_masks_next) * torch.finfo(attn_weights.dtype).min
 
         # Softmax (upcast to fp32 for numerical stability)
-        attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+        attn_weights_softmax = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+
+        # Safety check: replace any NaN/inf with uniform attention
+        if torch.isnan(attn_weights_softmax).any() or torch.isinf(attn_weights_softmax).any():
+            attn_weights_softmax = torch.where(
+                torch.isnan(attn_weights_softmax) | torch.isinf(attn_weights_softmax),
+                torch.ones_like(attn_weights_softmax) / kv_seq_len,
+                attn_weights_softmax
+            )
+
+        # Apply dropout
+        attn_weights_dropped = nn.functional.dropout(
+            attn_weights_softmax, p=self.attention_dropout, training=self.training
+        )
 
         # ===== H2O LOGIC: Compute scores and mask for next forward =====
         # attn_weights shape: (bsz, num_heads, q_len, kv_seq_len)
         # Sum over batch and query positions: (num_heads, kv_seq_len)
-        current_scores_sum = attn_weights.sum(0).sum(1)
+        current_scores_sum = attn_weights_softmax.sum(0).sum(1)
 
         # Accumulate scores OR initialize budgets
-        if not self.previous_scores == None:
+        if self.previous_scores is not None:
             # Subsequent forward: accumulate with previous scores
-            current_scores_sum[:, :-1] += self.previous_scores
+            if current_scores_sum.shape[-1] > 1:
+                current_scores_sum[:, :-1] += self.previous_scores
         else:
             # First forward: compute budgets based on INITIAL sequence length
             self.heavy_budget = int(self.heavy_budget_ratio * current_scores_sum.shape[-1])
             self.recent_budget = int(self.recent_budget_ratio * current_scores_sum.shape[-1])
             self.cache_budget = self.heavy_budget + self.recent_budget
             self.cache_budget_records.append(self.cache_budget)
-            self.input_length.append(attn_weights.shape[-1])
+            self.input_length.append(kv_seq_len)
 
-        dtype_attn_weights = attn_weights.dtype
-        attn_weights_devices = attn_weights.device
-        assert attn_weights.shape[0] == 1, f"H2O requires batch_size=1, got {attn_weights.shape[0]}"
+        dtype_attn = attn_weights_softmax.dtype
+        device = attn_weights_softmax.device
 
         # Store current scores for next forward
-        self.previous_scores = current_scores_sum
+        self.previous_scores = current_scores_sum.clone()
 
         # Create attention mask for NEXT forward
         # Shape: (num_heads, kv_seq_len + 1) - the +1 is for the next token
-        attn_mask = torch.ones(current_scores_sum.shape[0], current_scores_sum.shape[1] + 1).to(dtype_attn_weights).to(attn_weights_devices)
+        attn_mask = torch.ones(current_scores_sum.shape[0], current_scores_sum.shape[1] + 1, dtype=dtype_attn, device=device)
 
-        attn_tokens_all = self.previous_scores.shape[-1]
+        attn_tokens_all = current_scores_sum.shape[-1]
 
         if attn_tokens_all > self.cache_budget:
             # More tokens than budget -> need to evict
-
-            if not self.recent_budget == 0:
+            if self.recent_budget > 0:
                 # Keep recent tokens, zero out the rest
                 attn_mask[:, :-self.recent_budget] = 0
                 # Select heavy hitters from NON-recent tokens
@@ -256,7 +259,7 @@ class QwenAttention_heavy_hitter(nn.Module):
                 attn_mask[:, :] = 0
                 selected_set = self.previous_scores
 
-            if not self.heavy_budget == 0:
+            if self.heavy_budget > 0 and selected_set.shape[-1] >= self.heavy_budget:
                 # Find top-k heavy hitter tokens
                 _, keep_topk = selected_set.topk(k=self.heavy_budget, dim=-1, largest=True)
                 # Unmask heavy hitter positions
@@ -267,31 +270,27 @@ class QwenAttention_heavy_hitter(nn.Module):
 
         # Update previous_scores: zero out evicted tokens
         score_mask = attn_mask[:, :-1]
-        score_mask[:, -self.recent_budget:] = 1
+        if self.recent_budget > 0:
+            score_mask[:, -self.recent_budget:] = 1
         self.previous_scores = self.previous_scores * score_mask
 
         # ===== END H2O LOGIC =====
 
         # Compute attention output
-        attn_output = torch.matmul(attn_weights, value_states)
-
-        if attn_output.size() != (bsz, self.num_heads, q_len, self.head_dim):
-            raise ValueError(
-                f"`attn_output` should be of size {(bsz, self.num_heads, q_len, self.head_dim)}, but is"
-                f" {attn_output.size()}"
-            )
+        attn_output = torch.matmul(attn_weights_dropped, value_states_repeated)
 
         # Reshape: (bsz, num_heads, q_len, head_dim) -> (bsz, q_len, hidden_size)
-        attn_output = attn_output.transpose(1, 2)
-        attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
+        attn_output = attn_output.transpose(1, 2).contiguous()
+        attn_output = attn_output.reshape(bsz, q_len, -1)
 
         # Output projection
         attn_output = self.o_proj(attn_output)
 
+        # Return only 2 values to match Qwen2VL interface
         if not output_attentions:
-            attn_weights = None
+            attn_weights_softmax = None
 
-        return attn_output, attn_weights, past_key_value
+        return attn_output, attn_weights_softmax
 
 
 class Qwen3VLVisionAttention_heavy_hitter(nn.Module):
@@ -453,12 +452,16 @@ def convert_kvcache_qwen_heavy_recent(model, config):
     """
     Convert Qwen model to use H2O attention layers.
 
+    This follows the same pattern as convert_kvcache_llama_heavy_recent:
+    - Replace attention modules with H2O versions
+    - Weights are restored via load_state_dict() called AFTER this function
+
     Args:
         model: Qwen2-VL or Qwen3-VL model
         config: Model config with heavy_ratio and recent_ratio attributes
 
     Returns:
-        Model with H2O-enabled attention layers
+        Model with H2O-enabled attention layers (call load_state_dict after!)
     """
     for name, module in reversed(model._modules.items()):
         # Recursively process child modules
@@ -467,33 +470,12 @@ def convert_kvcache_qwen_heavy_recent(model, config):
 
         # Replace Qwen3VL vision attention (fused QKV)
         if HAS_QWEN3VL and Qwen3VLAttention is not None and isinstance(module, Qwen3VLAttention):
-            new_module = Qwen3VLVisionAttention_heavy_hitter(config)
-            # Copy weights
-            if hasattr(module, 'qkv'):
-                new_module.qkv.weight.data.copy_(module.qkv.weight.data)
-                if module.qkv.bias is not None:
-                    new_module.qkv.bias.data.copy_(module.qkv.bias.data)
-            if hasattr(module, 'proj'):
-                new_module.proj.weight.data.copy_(module.proj.weight.data)
-                if module.proj.bias is not None:
-                    new_module.proj.bias.data.copy_(module.proj.bias.data)
-            model._modules[name] = new_module
+            model._modules[name] = Qwen3VLVisionAttention_heavy_hitter(config)
 
         # Replace Qwen2VL attention (separate Q/K/V)
         elif HAS_QWEN2VL and Qwen2VLAttention is not None and isinstance(module, Qwen2VLAttention):
-            new_module = QwenAttention_heavy_hitter(config)
-            # Copy weights from original module
-            for proj_name in ['q_proj', 'k_proj', 'v_proj', 'o_proj']:
-                if hasattr(module, proj_name) and hasattr(new_module, proj_name):
-                    src = getattr(module, proj_name)
-                    dst = getattr(new_module, proj_name)
-                    dst.weight.data.copy_(src.weight.data)
-                    if src.bias is not None and dst.bias is not None:
-                        dst.bias.data.copy_(src.bias.data)
-            # Copy rotary embedding if present
-            if hasattr(module, 'rotary_emb') and hasattr(new_module, 'rotary_emb'):
-                if new_module.rotary_emb is not None and module.rotary_emb is not None:
-                    new_module.rotary_emb = module.rotary_emb
-            model._modules[name] = new_module
+            # Get layer_idx from original module if available
+            layer_idx = getattr(module, 'layer_idx', None)
+            model._modules[name] = QwenAttention_heavy_hitter(config, layer_idx=layer_idx)
 
     return model
