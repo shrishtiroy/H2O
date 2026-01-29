@@ -183,7 +183,12 @@ def load_model(args):
         # Move to device if not using device_map
         if not args.device_map:
             model = model.to(device)
-
+    # Add this right after model loading in run_vqa_eval.py (after line ~160)
+    print("\n=== Checking attention layers ===")
+    for name, module in model.named_modules():
+        if "attn" in name.lower():
+            print(f"{name}: {type(module).__name__}")
+            break  # Just show first one
     model.eval()
 
     return model, processor, config
@@ -228,7 +233,7 @@ def run_sanity_check(model, processor, args):
             image = Image.fromarray(img_array)
 
     # Default question
-    question = args.question if args.question else "Describe this image in detail."
+    question = args.question if args.question else "Hello. Describe this image in detail."
     print(f"Question: {question}")
 
     # Prepare input
@@ -259,12 +264,14 @@ def run_sanity_check(model, processor, args):
             max_new_tokens=args.max_new_tokens,
             do_sample=False,
         )
-
+        print(f"Output IDs shape: {output_ids.shape}")
+        print(f"Output IDs: {output_ids[0, -20:]}")  # Last 20 token IDs
+        print(f"Unique tokens in output: {torch.unique(output_ids)}")
     elapsed_time = time.time() - start_time
 
     # Decode output
     response = processor.decode(output_ids[0], skip_special_tokens=True)
-
+    
     print("\n" + "-"*60)
     print("Response:")
     print("-"*60)

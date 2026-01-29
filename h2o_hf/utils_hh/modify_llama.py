@@ -41,7 +41,13 @@ class LlamaAttention_heavy_hitter(nn.Module):
         self.k_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
         self.v_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=False)
         self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=False)
-        self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=self.max_position_embeddings)
+        
+        # Initialize rotary embeddings - handle both old and new API
+        try:
+            self.rotary_emb = LlamaRotaryEmbedding(self.head_dim, max_position_embeddings=self.max_position_embeddings)
+        except TypeError:
+            # Newer transformers version doesn't use max_position_embeddings parameter
+            self.rotary_emb = LlamaRotaryEmbedding(self.head_dim)
 
         self.heavy_budget_ratio = config.heavy_ratio
         self.recent_budget_ratio = config.recent_ratio
