@@ -1,0 +1,17 @@
+{
+  "model": "Qwen/Qwen2-VL-2B-Instruct",
+  "dataset": "VQAv2",
+  "num_samples": 100,
+  "baseline": {
+    "accuracy": 85.0,
+    "time": 26.860723972320557,
+    "total": 100
+  },
+  "h2o": {
+    "accuracy": 85.0,
+    "time": 28.927093267440796,
+    "total": 100,
+    "heavy_ratio": 0.1,
+    "recent_ratio": 0.1
+  }
+}

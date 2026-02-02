@@ -27,26 +27,36 @@ import json
 import tqdm 
 import copy 
 
-from transformers import (
-    CTRLLMHeadModel,
-    CTRLTokenizer,
-    GPT2LMHeadModel,
-    GPT2Tokenizer,
-    OpenAIGPTLMHeadModel,
-    OpenAIGPTTokenizer,
-    TransfoXLLMHeadModel,
-    TransfoXLTokenizer,
-    XLMTokenizer,
-    XLMWithLMHeadModel,
-    XLNetLMHeadModel,
-    XLNetTokenizer,
-)
+try:
+    from transformers import (
+        CTRLLMHeadModel,
+        CTRLTokenizer,
+        GPT2LMHeadModel,
+        GPT2Tokenizer,
+        OpenAIGPTLMHeadModel,
+        OpenAIGPTTokenizer,
+        TransfoXLLMHeadModel,
+        TransfoXLTokenizer,
+        XLMTokenizer,
+        XLMWithLMHeadModel,
+        XLNetLMHeadModel,
+        XLNetTokenizer,
+    )
+except ImportError:
+    # Some model classes removed in newer transformers versions
+    pass
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
 from utils_hh.modify_llama import convert_kvcache_llama_heavy_recent, LlamaAttention_heavy_hitter
-from utils_hh.modify_gptneox import convert_kvcache_gpt_neox_heavy_recent, GPTNeoXAttention_Mask
-from utils_hh.modify_opt import convert_kvcache_opt_heavy_recent, OPTAttention_Mask
+try:
+    from utils_hh.modify_gptneox import convert_kvcache_gpt_neox_heavy_recent, GPTNeoXAttention_Mask
+except ImportError:
+    pass
+try:
+    from utils_hh.modify_opt import convert_kvcache_opt_heavy_recent, OPTAttention_Mask
+except ImportError:
+    pass
 from utils_hh.modify_qwen import convert_kvcache_qwen_heavy_recent, QwenAttention_heavy_hitter
 
 
@@ -92,10 +102,16 @@ def set_seed(args):
 
 ENABLE_Heavy_Hitter_FUNCTIONS = {
     "llama": convert_kvcache_llama_heavy_recent,
-    "opt": convert_kvcache_opt_heavy_recent,
-    "gpt_neox": convert_kvcache_gpt_neox_heavy_recent,
     "qwen": convert_kvcache_qwen_heavy_recent,
 }
+try:
+    ENABLE_Heavy_Hitter_FUNCTIONS["opt"] = convert_kvcache_opt_heavy_recent
+except NameError:
+    pass
+try:
+    ENABLE_Heavy_Hitter_FUNCTIONS["gpt_neox"] = convert_kvcache_gpt_neox_heavy_recent
+except NameError:
+    pass
 
 
 def main():

@@ -48,14 +48,23 @@ def load_model(model_name, enable_h2o=False, heavy_ratio=0.1, recent_ratio=0.1):
     model.eval()
     return model
 
-def test_text_generation(model, tokenizer, prompt="The future of AI is", max_tokens=50):
+def reset_h2o_state(model):
+    """Reset H2O state in all attention modules."""
+    for module in model.modules():
+        if hasattr(module, '_reset_masks'):
+            module._reset_masks()
+
+def test_text_generation(model, tokenizer, prompt="In a small, bustling cafe nestled in the heart of a vibrant city, a serendipitous event unfolded, leaving a lasting impression on all who witnessed it. The story begins with", max_tokens=50):
     """Test text generation."""
     print(f"\n{'='*70}")
     print(f"Text Generation Test")
     print(f"Prompt: {prompt}")
     print(f"Max tokens: {max_tokens}")
     print(f"{'='*70}")
-    
+
+    # Reset H2O state before each test
+    reset_h2o_state(model)
+
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     
     start_time = time.time()
@@ -88,12 +97,15 @@ def test_long_context(model, tokenizer, context_len=2000, query_len=100):
     print(f"Long Context Test")
     print(f"Context length: {context_len}, Query length: {query_len}")
     print(f"{'='*70}")
-    
+
+    # Reset H2O state before each test
+    reset_h2o_state(model)
+
     # Create a long context
     prompt_tokens = ["word"] * context_len
     prompt = " ".join(prompt_tokens)
     prompt += "\nQuestion: What is the main topic?"
-    
+
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     input_len = inputs['input_ids'].shape[1]
     
@@ -165,7 +177,9 @@ def main():
     
     if is_supported:
         try:
-            model_h2o = load_model(model_name, enable_h2o=True, heavy_ratio=0.1, recent_ratio=0.1)
+            # Use higher ratios for short prompts (H2O is designed for long contexts)
+            # 0.3 heavy + 0.3 recent = 60% of tokens retained
+            model_h2o = load_model(model_name, enable_h2o=True, heavy_ratio=0.3, recent_ratio=0.3)
             results['h2o'] = {
                 'text_generation': test_text_generation(model_h2o, tokenizer),
                 'long_context': test_long_context(model_h2o, tokenizer, context_len=500),

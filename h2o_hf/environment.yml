@@ -1,0 +1,19 @@
+name: h2o
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - torch==2.5.1
+    - transformers==4.51.0
+    - accelerate
+    - qwen-vl-utils
+    - Pillow
+    - requests
+    - datasets
+    - tqdm
+    - numpy
+    - lm_eval==0.3.0
+    - ftfy

@@ -6,6 +6,7 @@ only adding H2O eviction logic.
 """
 
 import math
+import inspect
 from typing import Optional, Tuple, Callable
 
 import torch
@@ -16,17 +17,32 @@ import torch.nn.functional as F
 HAS_QWEN2VL = False
 QWEN2VL_ATTENTION_CLASSES = []
 
+# Auto-detect how many return values the decoder layer expects from self_attn
+_ATTN_RETURNS_3 = True  # default: 3 values (attn_output, attn_weights, past_key_value)
 try:
-    from transformers.models.qwen2_vl.modeling_qwen2_vl import (
-        Qwen2VLAttention,
-        apply_multimodal_rotary_pos_emb,
-        eager_attention_forward,
-    )
+    from transformers.models.qwen2_vl.modeling_qwen2_vl import Qwen2VLDecoderLayer
+    _src = inspect.getsource(Qwen2VLDecoderLayer.forward)
+    # If the decoder unpacks only 2 values, we should return 2
+    if 'self_attn_weights, present_key_value = self.self_attn' not in _src:
+        _ATTN_RETURNS_3 = False
+except Exception:
+    pass
+
+try:
+    from transformers.models.qwen2_vl.modeling_qwen2_vl import apply_multimodal_rotary_pos_emb
+except ImportError:
+    apply_multimodal_rotary_pos_emb = None
+
+try:
+    from transformers.models.qwen2_vl.modeling_qwen2_vl import Qwen2VLAttention
     HAS_QWEN2VL = True
     QWEN2VL_ATTENTION_CLASSES.append(Qwen2VLAttention)
 except ImportError:
     Qwen2VLAttention = None
-    apply_multimodal_rotary_pos_emb = None
+
+try:
+    from transformers.models.qwen2_vl.modeling_qwen2_vl import eager_attention_forward
+except ImportError:
     eager_attention_forward = None
 
 try:
@@ -100,13 +116,17 @@ class QwenAttention_heavy_hitter(nn.Module):
         
         # H2O state tracking - per layer, per sequence
         self.h2o_scores = None
+        self.attention_masks_next = None  # Mask to apply on the NEXT forward pass
+        self.heavy_budget = None
+        self.recent_budget = None
+        self.cache_budget = None
 
     def forward(
         self,
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values=None,  # Match the parameter name exactly
+        past_key_value=None,  # Match the parameter name exactly (singular)
         output_attentions: bool = False,
         use_cache: bool = False,
         cache_position: Optional[torch.LongTensor] = None,
@@ -119,182 +139,166 @@ class QwenAttention_heavy_hitter(nn.Module):
         """
         bsz, q_len, _ = hidden_states.size()
         
-        # Reset H2O scores at the start of a new sequence
+        # Reset H2O state at the start of a new sequence
         if cache_position is not None and cache_position[0].item() == 0:
             self.h2o_scores = None
+            self.attention_masks_next = None
+            self.heavy_budget = None
+            self.recent_budget = None
+            self.cache_budget = None
 
         # QKV projection - exactly as original
         query_states = self.q_proj(hidden_states)
         key_states = self.k_proj(hidden_states)
         value_states = self.v_proj(hidden_states)
 
-        # Reshape - use -1 for automatic head count inference like original
+        # Reshape
         query_states = query_states.view(bsz, q_len, -1, self.head_dim).transpose(1, 2)
         key_states = key_states.view(bsz, q_len, -1, self.head_dim).transpose(1, 2)
         value_states = value_states.view(bsz, q_len, -1, self.head_dim).transpose(1, 2)
 
-        # Apply rotary embeddings - exactly as original
+        # Apply rotary embeddings
         cos, sin = position_embeddings
         query_states, key_states = apply_multimodal_rotary_pos_emb(
             query_states, key_states, cos, sin, self.rope_scaling["mrope_section"]
         )
 
-        # Update cache - exactly as original
-        if past_key_values is not None:
+        # Update cache
+        if past_key_value is not None:
             cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
-            key_states, value_states = past_key_values.update(
+            key_states, value_states = past_key_value.update(
                 key_states, value_states, self.layer_idx, cache_kwargs
             )
 
-        # Use the attention interface like original OR fall back to manual computation
-        # For consistency and H2O support, we use manual computation
-        
-        # Get sequence length
-        kv_seq_len = key_states.shape[-2]
-        
-        # Check if we should use H2O eviction
-        use_h2o = kv_seq_len >= self.min_seq_for_eviction
-        
-        # Manual attention computation (with optional H2O)
-        # Repeat KV for GQA
+        # Repeat KV for GQA (like original)
         key_states_expanded = repeat_kv(key_states, self.num_key_value_groups)
         value_states_expanded = repeat_kv(value_states, self.num_key_value_groups)
 
-        # Compute attention scores
-        attn_weights = torch.matmul(query_states, key_states_expanded.transpose(2, 3)) * self.scaling
+        kv_seq_len = key_states_expanded.shape[-2]
 
-        # Apply attention mask (before softmax)
-        if attention_mask is not None:
-            causal_mask = attention_mask[:, :, :, :kv_seq_len]
-            attn_weights = attn_weights + causal_mask
+        # H2O only activates during autoregressive generation (q_len==1) to avoid
+        # numerical divergence from SDPA during prefill
+        h2o_active = (q_len == 1 and self.attention_masks_next is not None and
+                      self.attention_masks_next.shape[-1] == kv_seq_len)
+        h2o_should_track = (q_len == 1 and kv_seq_len >= self.min_seq_for_eviction)
 
-        # Softmax - use float32 for numerical stability
-        attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+        if not h2o_active and not h2o_should_track:
+            # Use SDPA for numerical stability (matches original exactly)
+            causal_mask = attention_mask
+            if attention_mask is not None:
+                causal_mask = attention_mask[:, :, :, :kv_seq_len]
 
-        # Ensure no NaN from softmax
-        if torch.isnan(attn_weights).any():
-            print(f"Warning: NaN detected in attention weights after softmax")
-            attn_weights = torch.where(torch.isnan(attn_weights), torch.zeros_like(attn_weights), attn_weights)
+            if query_states.device.type == "cuda" and causal_mask is not None:
+                query_states = query_states.contiguous()
+                key_states_expanded = key_states_expanded.contiguous()
+                value_states_expanded = value_states_expanded.contiguous()
 
-        # H2O eviction
-        if use_h2o:
-            h2o_mask = self._compute_h2o_mask(attn_weights, kv_seq_len)
-            if h2o_mask is not None:
-                # Apply mask - multiply by 0 for evicted tokens
-                attn_weights = attn_weights * h2o_mask.float()
-                
-                # Renormalize carefully to avoid NaN
-                attn_sum = attn_weights.sum(dim=-1, keepdim=True)
-                # Ensure we don't divide by zero
-                attn_sum = torch.clamp(attn_sum, min=1e-9)
-                attn_weights = attn_weights / attn_sum
-                
-                # Convert back to original dtype after renormalization
-                attn_weights = attn_weights.to(query_states.dtype)
+            is_causal = True if causal_mask is None and q_len > 1 else False
 
-        # Dropout
-        attn_weights = F.dropout(attn_weights, p=self.attention_dropout, training=self.training)
+            attn_output = F.scaled_dot_product_attention(
+                query_states, key_states_expanded, value_states_expanded,
+                attn_mask=causal_mask,
+                dropout_p=self.attention_dropout if self.training else 0.0,
+                is_causal=is_causal,
+            )
+            attn_weights = None
+        else:
+            # Manual attention for H2O score tracking and masking
+            attn_weights = torch.matmul(
+                query_states.float(), key_states_expanded.float().transpose(2, 3)
+            ) * self.scaling
 
-        # Compute output
-        attn_output = torch.matmul(attn_weights, value_states_expanded)
-        
-        # Reshape: (bsz, num_heads, q_len, head_dim) -> (bsz, q_len, num_heads, head_dim)
+            if attention_mask is not None:
+                causal_mask = attention_mask[:, :, :, :kv_seq_len]
+                attn_weights = attn_weights + causal_mask.float()
+
+            # Apply H2O mask from PREVIOUS step
+            if h2o_active:
+                attn_weights = attn_weights * self.attention_masks_next.float() + \
+                    (1 - self.attention_masks_next.float()) * torch.finfo(attn_weights.dtype).min
+
+            attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32)
+
+            # Update H2O state for next step
+            if h2o_should_track:
+                self._update_h2o_state(attn_weights, kv_seq_len)
+
+            attn_weights = attn_weights.to(query_states.dtype)
+            attn_weights = F.dropout(attn_weights, p=self.attention_dropout, training=self.training)
+            attn_output = torch.matmul(attn_weights, value_states_expanded)
+
+        # Reshape and project
         attn_output = attn_output.transpose(1, 2).contiguous()
-
-        # Output reshape and projection - exactly as original
-        attn_output = attn_output.reshape(bsz, q_len, -1).contiguous()
+        attn_output = attn_output.view(bsz, q_len, self.hidden_size)
         attn_output = self.o_proj(attn_output)
 
         if not output_attentions:
             attn_weights = None
 
-        return attn_output, attn_weights
+        if _ATTN_RETURNS_3:
+            return attn_output, attn_weights, past_key_value
+        else:
+            return attn_output, attn_weights
 
-    def _compute_h2o_mask(self, attn_weights, kv_seq_len):
-        """Compute H2O eviction mask."""
-        dtype = attn_weights.dtype
+    def _update_h2o_state(self, attn_weights, kv_seq_len):
+        """
+        Update H2O scores and compute attention mask for NEXT forward pass.
+        Follows the LLaMA H2O simulation pattern: mask is computed now but
+        applied in the next step.
+        """
         device = attn_weights.device
-        
+
+        # Accumulate attention scores: sum over batch and query dims
         # attn_weights shape: (bsz, num_heads, q_len, kv_seq_len)
-        # Verify kv_seq_len matches the actual attention weights
-        actual_kv_len = attn_weights.shape[-1]
-        if actual_kv_len != kv_seq_len:
-            print(f"Warning: kv_seq_len mismatch: {kv_seq_len} vs {actual_kv_len}, using actual", file=__import__('sys').stderr)
-            kv_seq_len = actual_kv_len
-        
-        # Aggregate scores across batch and query positions
-        current_scores = attn_weights.sum(dim=(0, 2))  # (num_heads, kv_seq_len)
-        
-        # Debug logging for H2O activation
-        heavy_budget = max(1, int(self.heavy_budget_ratio * kv_seq_len))
-        recent_budget = max(1, int(self.recent_budget_ratio * kv_seq_len))
-        sink_budget = self.sink_token_count
-        total_keep = sink_budget + recent_budget + heavy_budget
-        
-        if kv_seq_len >= self.min_seq_for_eviction and kv_seq_len > total_keep:
-            import sys
-            print(f"\n[H2O] Layer {self.layer_idx}: seq_len={kv_seq_len}, keep={total_keep} "
-                  f"(sink={sink_budget}, recent={recent_budget}, heavy={heavy_budget})", file=sys.stderr)
-        
-        # Initialize h2o_scores if needed or if sequence length changed
-        if self.h2o_scores is None:
-            self.h2o_scores = current_scores.detach().clone()
-        elif self.h2o_scores.shape[-1] != kv_seq_len:
-            # Sequence length changed - reset scores
-            self.h2o_scores = current_scores.detach().clone()
+        current_scores_sum = attn_weights.detach().sum(0).sum(1)  # (num_heads, kv_seq_len)
+
+        # Accumulate with previous scores
+        if self.h2o_scores is not None:
+            if self.h2o_scores.shape[-1] < kv_seq_len:
+                # Growing sequence - pad previous scores
+                pad_size = kv_seq_len - self.h2o_scores.shape[-1]
+                padded = torch.zeros(self.h2o_scores.shape[0], pad_size,
+                                     dtype=self.h2o_scores.dtype, device=device)
+                self.h2o_scores = torch.cat([self.h2o_scores, padded], dim=-1)
+            if self.h2o_scores.shape[-1] == kv_seq_len:
+                current_scores_sum[:, :self.h2o_scores.shape[-1]] += self.h2o_scores
         else:
-            # Same length - accumulate
-            current_scores = current_scores + self.h2o_scores
-        
-        heavy_budget = max(1, int(self.heavy_budget_ratio * kv_seq_len))
-        recent_budget = max(1, int(self.recent_budget_ratio * kv_seq_len))
-        sink_budget = self.sink_token_count
-        
-        # Total tokens to keep
-        total_keep = sink_budget + recent_budget + heavy_budget
-        
-        if kv_seq_len <= total_keep:
-            self.h2o_scores = current_scores.detach().clone()
-            return None
-        
-        # Create keep mask for exact kv_seq_len
-        keep_mask = torch.zeros(self.num_heads, kv_seq_len, dtype=torch.bool, device=device)
-        
-        # CRITICAL FIX FOR VLMs: Protect image tokens (usually at the start)
-        # For Qwen2-VL, image patches are embedded at the beginning (~400-600 tokens)
-        # but we should be smarter about this - only protect tokens that matter
-        # Use a smaller protected zone to avoid defeating H2O's purpose
-        image_protect_size = max(sink_budget * 2, int(0.2 * kv_seq_len))  # Only protect first 20%
-        if kv_seq_len > 3 * image_protect_size:  # Only if there's room
-            keep_mask[:, :image_protect_size] = True
-            effective_middle_start = image_protect_size
-        else:
-            # Fallback: just use regular sink budget
-            keep_mask[:, :sink_budget] = True
-            effective_middle_start = sink_budget
-        
-        # Keep recent tokens (end)
-        if recent_budget > 0:
-            keep_mask[:, -recent_budget:] = True
-        
-        # Keep heavy hitter tokens from middle section
-        middle_start = effective_middle_start
-        middle_end = kv_seq_len - recent_budget if recent_budget > 0 else kv_seq_len
-        
-        if middle_end > middle_start and heavy_budget > 0:
-            middle_len = middle_end - middle_start
-            middle_scores = current_scores[:, middle_start:middle_end]
-            k = min(heavy_budget, middle_len)
-            if k > 0 and middle_len > 0:
-                _, topk_idx = middle_scores.topk(k=k, dim=-1, largest=True)
-                keep_mask.scatter_(1, topk_idx + middle_start, True)
-        
-        # Update scores - only keep scores for tokens we're keeping
-        self.h2o_scores = (current_scores * keep_mask.to(current_scores.dtype)).detach().clone()
-        
-        # Return mask in shape (1, num_heads, 1, kv_seq_len) for broadcasting
-        # Ensure shape exactly matches for broadcasting with attention weights
-        return keep_mask.unsqueeze(0).unsqueeze(2).to(dtype)
+            # First time - initialize budgets
+            input_len = kv_seq_len
+            self.heavy_budget = max(1, int(self.heavy_budget_ratio * input_len))
+            self.recent_budget = max(1, int(self.recent_budget_ratio * input_len))
+            self.cache_budget = self.heavy_budget + self.recent_budget
+
+        self.h2o_scores = current_scores_sum.clone()
+
+        # Build mask for NEXT step (size = kv_seq_len + 1 for next token)
+        attn_tokens_all = kv_seq_len
+        next_len = attn_tokens_all + 1
+
+        attn_mask = torch.ones(current_scores_sum.shape[0], next_len,
+                               dtype=attn_weights.dtype, device=device)
+
+        if attn_tokens_all > self.cache_budget:
+            # Zero out non-recent, non-heavy-hitter positions
+            if self.recent_budget > 0:
+                attn_mask[:, :-self.recent_budget] = 0
+                selected_set = self.h2o_scores[:, :-self.recent_budget]
+            else:
+                attn_mask[:, :] = 0
+                selected_set = self.h2o_scores
+
+            if self.heavy_budget > 0:
+                k = min(self.heavy_budget, selected_set.shape[-1])
+                _, keep_topk = selected_set.topk(k=k, dim=-1, largest=True)
+                attn_mask = attn_mask.scatter(-1, keep_topk, 1)
+
+        self.attention_masks_next = attn_mask.unsqueeze(0).unsqueeze(2)  # (1, heads, 1, next_len)
+
+        # Update scores: zero out evicted token scores but keep recent scores
+        if self.recent_budget > 0:
+            score_mask = attn_mask[:, :-1].clone()
+            score_mask[:, -self.recent_budget:] = 1
+            self.h2o_scores = self.h2o_scores * score_mask
 
 
 def convert_kvcache_qwen_heavy_recent(model, config):
