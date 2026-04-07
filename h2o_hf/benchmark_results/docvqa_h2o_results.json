@@ -1,0 +1,46 @@
+{
+  "model": "Qwen/Qwen2-VL-2B-Instruct",
+  "dataset": "DocVQA",
+  "num_samples": 200,
+  "min_seq_for_eviction": 100,
+  "max_pixels": 1638400,
+  "results": [
+    {
+      "label": "Baseline",
+      "num_samples": 200,
+      "anls": 0.024,
+      "exact_match_pct": 0.0,
+      "substring_match_pct": 91.5,
+      "avg_input_tokens": 2047.4,
+      "peak_memory_mb": 4973.7,
+      "time_seconds": 438.9,
+      "throughput_samples_per_sec": 0.46
+    },
+    {
+      "label": "H2O(0.5/0.5)",
+      "num_samples": 200,
+      "anls": 0.024,
+      "exact_match_pct": 0.0,
+      "substring_match_pct": 91.5,
+      "avg_input_tokens": 2047.4,
+      "peak_memory_mb": 4972.2,
+      "time_seconds": 539.8,
+      "throughput_samples_per_sec": 0.37,
+      "heavy_ratio": 0.5,
+      "recent_ratio": 0.5
+    },
+    {
+      "label": "H2O(0.7/0.7)",
+      "num_samples": 200,
+      "anls": 0.024,
+      "exact_match_pct": 0.0,
+      "substring_match_pct": 91.5,
+      "avg_input_tokens": 2047.4,
+      "peak_memory_mb": 4972.2,
+      "time_seconds": 519.6,
+      "throughput_samples_per_sec": 0.38,
+      "heavy_ratio": 0.7,
+      "recent_ratio": 0.7
+    }
+  ]
+}

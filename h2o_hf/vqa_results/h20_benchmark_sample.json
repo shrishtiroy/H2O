@@ -1,0 +1,27 @@
+
+
+{
+  "model": "Qwen/Qwen2-VL-2B-Instruct",
+  "image": " https://raw.githubusercontent.com/huggingface/transformers/main/tests/fixtures/tests_samples/COCO/000000039769.png",
+  "baseline": {
+    "response": "The image depicts two cats resting on a pink blanket that covers the entire visible area of the scene. The cats are lying side by side, with their bodies oriented in a way that suggests they are in a relaxed, comfortable state. 
+
+The cat on the left has a light-colored fur pattern with darker stripes, and it is curled up in a way that suggests it is sleeping or resting. The cat on the right has a similar light-colored fur pattern with darker stripes, and it is also curled up, appearing to be in a similar state of rest. 
+
+In the background, there are two remote controls placed on the pink blanket. One remote control is positioned towards the top left corner of the image, while the other is located towards the top right corner. The placement of the remote controls suggests that the cats might be in a living room or a similar setting where they are commonly found."
+    "time": 10.26,
+    "total": 500,
+    "heavy_ratio": 0.1,
+    "recent_ratio": 0.1
+  },
+  "h2o": {
+    "response": "The image depicts two cats resting on a pink blanket that covers the entire visible area of the scene. The cats are lying side by side, with their bodies oriented in a way that suggests they are in a relaxed and comfortable state. 
+
+    The cat on the left has a light-colored fur pattern with darker stripes, and it is curled up in a way that suggests it is sleeping or resting. The cat on the right has a similar light-colored fur pattern with darker stripes, and it is also curled up, appearing to be in a similar state of rest. 
+
+    In the background, there are two remote controls placed on the pink blanket. One remote control is positioned towards the top left corner of the image, while the other is located towards the top right corner. The placement of the remote controls suggests that the cats might be in a living room or a similar setting where they are commonly found.",
+    "time": 9.28,
+    "heavy_ratio": 0.1,
+    "recent_ratio": 0.1
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "model": "Qwen/Qwen3-VL-2B-Instruct",
+  "dataset": "DocVQA",
+  "num_samples": 200,
+  "min_seq_for_eviction": 100,
+  "max_pixels": 480000,
+  "results": [
+    {
+      "label": "Baseline",
+      "num_samples": 200,
+      "anls": 0.0362,
+      "exact_match_pct": 2.5,
+      "substring_match_pct": 86.0,
+      "avg_input_tokens": 1575.5,
+      "peak_memory_mb": 4804.3,
+      "time_seconds": 639.9,
+      "throughput_samples_per_sec": 0.31
+    },
+    {
+      "label": "H2O(0.1/0.1)",
+      "num_samples": 200,
+      "anls": 0.0281,
+      "exact_match_pct": 2.5,
+      "substring_match_pct": 32.0,
+      "avg_input_tokens": 1575.5,
+      "peak_memory_mb": 4804.9,
+      "time_seconds": 799.3,
+      "throughput_samples_per_sec": 0.25,
+      "heavy_ratio": 0.1,
+      "recent_ratio": 0.1
+    },
+    {
+      "label": "H2O(0.2/0.2)",
+      "num_samples": 200,
+      "anls": 0.0339,
+      "exact_match_pct": 2.5,
+      "substring_match_pct": 56.5,
+      "avg_input_tokens": 1575.5,
+      "peak_memory_mb": 4805.5,
+      "time_seconds": 769.2,
+      "throughput_samples_per_sec": 0.26,
+      "heavy_ratio": 0.2,
+      "recent_ratio": 0.2
+    },
+    {
+      "label": "H2O(0.3/0.3)",
+      "num_samples": 200,
+      "anls": 0.0335,
+      "exact_match_pct": 2.5,
+      "substring_match_pct": 70.0,
+      "avg_input_tokens": 1575.5,
+      "peak_memory_mb": 4804.9,
+      "time_seconds": 779.4,
+      "throughput_samples_per_sec": 0.26,
+      "heavy_ratio": 0.3,
+      "recent_ratio": 0.3
+    }
+  ]
+}

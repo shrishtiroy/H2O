@@ -1,0 +1,63 @@
+{
+  "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "dataset": "wikitext-2-raw-v1",
+  "seq_length": 2048,
+  "num_samples": 10,
+  "results": [
+    {
+      "label": "Baseline",
+      "heavy_ratio": null,
+      "recent_ratio": null,
+      "perplexity": 7.01,
+      "avg_nll": 1.9469,
+      "peak_memory_mb": 2240.9,
+      "time_seconds": 386.1,
+      "throughput_tok_per_sec": 53.0,
+      "total_tokens": 20480
+    },
+    {
+      "label": "H2O(0.1/0.1)",
+      "heavy_ratio": 0.1,
+      "recent_ratio": 0.1,
+      "perplexity": 8.2,
+      "avg_nll": 2.1046,
+      "peak_memory_mb": 2240.9,
+      "time_seconds": 551.7,
+      "throughput_tok_per_sec": 37.1,
+      "total_tokens": 20480
+    },
+    {
+      "label": "H2O(0.2/0.2)",
+      "heavy_ratio": 0.2,
+      "recent_ratio": 0.2,
+      "perplexity": 7.7,
+      "avg_nll": 2.0409,
+      "peak_memory_mb": 2240.9,
+      "time_seconds": 534.3,
+      "throughput_tok_per_sec": 38.3,
+      "total_tokens": 20480
+    },
+    {
+      "label": "H2O(0.3/0.3)",
+      "heavy_ratio": 0.3,
+      "recent_ratio": 0.3,
+      "perplexity": 7.33,
+      "avg_nll": 1.9922,
+      "peak_memory_mb": 2240.9,
+      "time_seconds": 544.0,
+      "throughput_tok_per_sec": 37.6,
+      "total_tokens": 20480
+    },
+    {
+      "label": "H2O(0.5/0.5)",
+      "heavy_ratio": 0.5,
+      "recent_ratio": 0.5,
+      "perplexity": 7.1,
+      "avg_nll": 1.9598,
+      "peak_memory_mb": 2240.9,
+      "time_seconds": 536.7,
+      "throughput_tok_per_sec": 38.2,
+      "total_tokens": 20480
+    }
+  ]
+}

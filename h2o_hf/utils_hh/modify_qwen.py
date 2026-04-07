@@ -57,6 +57,41 @@ try:
 except ImportError:
     pass
 
+# Qwen2.5-VL support (same interface as Qwen2-VL, different class names)
+try:
+    from transformers.models.qwen2_5_vl.modeling_qwen2_5_vl import Qwen2_5_VLAttention
+    QWEN2VL_ATTENTION_CLASSES.append(Qwen2_5_VLAttention)
+except ImportError:
+    pass
+
+try:
+    from transformers.models.qwen2_5_vl.modeling_qwen2_5_vl import Qwen2_5_VLSdpaAttention
+    QWEN2VL_ATTENTION_CLASSES.append(Qwen2_5_VLSdpaAttention)
+except ImportError:
+    pass
+
+try:
+    from transformers.models.qwen2_5_vl.modeling_qwen2_5_vl import Qwen2_5_VLFlashAttention2
+    QWEN2VL_ATTENTION_CLASSES.append(Qwen2_5_VLFlashAttention2)
+except ImportError:
+    pass
+
+# Qwen3-VL support (wrapper approach: different interface — q_norm/k_norm, standard rotary, 2 return values)
+QWEN3VL_ATTENTION_CLASSES = []
+apply_rotary_pos_emb_qwen3vl = None
+
+try:
+    from transformers.models.qwen3_vl.modeling_qwen3_vl import Qwen3VLTextAttention
+    QWEN3VL_ATTENTION_CLASSES.append(Qwen3VLTextAttention)
+except ImportError:
+    Qwen3VLTextAttention = None
+
+try:
+    from transformers.models.qwen3_vl.modeling_qwen3_vl import apply_rotary_pos_emb as _qwen3vl_rope
+    apply_rotary_pos_emb_qwen3vl = _qwen3vl_rope
+except ImportError:
+    pass
+
 # Try to import ALL_ATTENTION_FUNCTIONS for non-eager attention
 try:
     from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
@@ -64,7 +99,8 @@ except ImportError:
     ALL_ATTENTION_FUNCTIONS = {}
 
 
-__all__ = ['convert_kvcache_qwen_heavy_recent', 'QwenAttention_heavy_hitter']
+__all__ = ['convert_kvcache_qwen_heavy_recent', 'QwenAttention_heavy_hitter',
+           'Qwen3VLAttention_heavy_hitter']
 
 
 def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
@@ -301,35 +337,253 @@ class QwenAttention_heavy_hitter(nn.Module):
             self.h2o_scores = self.h2o_scores * score_mask
 
 
+class Qwen3VLAttention_heavy_hitter(nn.Module):
+    """
+    Wrapper around Qwen3VLTextAttention that adds H2O KV cache eviction.
+
+    Prefill (q_len > 1): delegates entirely to the original Qwen3VLTextAttention,
+    ensuring bit-identical results to baseline.
+
+    Decode (q_len == 1): replicates q_norm/k_norm + rotary + manual attention
+    with H2O score accumulation and masking.
+
+    Returns 2 values (attn_output, None) matching Qwen3VLTextDecoderLayer expectation.
+    """
+
+    def __init__(self, original_attn, config):
+        super().__init__()
+        self.original_attn = original_attn
+        self.config = config
+        self.layer_idx = original_attn.layer_idx
+
+        # Derive dimensions from the projection layers — avoids config nesting issues
+        # (Qwen3-VL has a nested text_config; projections are always concrete)
+        self.head_dim = original_attn.head_dim
+        self.num_heads = original_attn.q_proj.out_features // self.head_dim
+        self.num_key_value_heads = original_attn.k_proj.out_features // self.head_dim
+        self.num_key_value_groups = self.num_heads // self.num_key_value_heads
+        self.hidden_size = original_attn.o_proj.in_features
+        self.scaling = original_attn.scaling
+
+        # H2O parameters — set on the main config by load_model()
+        self.heavy_budget_ratio = getattr(config, 'heavy_ratio', 0.1)
+        self.recent_budget_ratio = getattr(config, 'recent_ratio', 0.1)
+        self.min_seq_for_eviction = getattr(config, 'min_seq_for_eviction', 1024)
+
+        # H2O state
+        self.h2o_scores = None
+        self.attention_masks_next = None
+        self.heavy_budget = None
+        self.recent_budget = None
+        self.cache_budget = None
+
+    def _reset_masks(self):
+        self.h2o_scores = None
+        self.attention_masks_next = None
+        self.heavy_budget = None
+        self.recent_budget = None
+        self.cache_budget = None
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        position_embeddings,
+        attention_mask=None,
+        past_key_values=None,
+        cache_position=None,
+        **kwargs,
+    ):
+        bsz, q_len, _ = hidden_states.size()
+
+        # Reset state at the start of a new sequence
+        if cache_position is not None and cache_position[0].item() == 0:
+            self._reset_masks()
+
+        if q_len > 1:
+            # PREFILL: delegate entirely to original (bit-identical to baseline)
+            result = self.original_attn(
+                hidden_states=hidden_states,
+                position_embeddings=position_embeddings,
+                attention_mask=attention_mask,
+                past_key_values=past_key_values,
+                cache_position=cache_position,
+                **kwargs,
+            )
+            # Set H2O budgets from the KV length after prefill
+            if self.heavy_budget is None and past_key_values is not None:
+                try:
+                    kv_len = past_key_values.get_seq_length(self.layer_idx)
+                except Exception:
+                    kv_len = q_len
+                self.heavy_budget = max(1, int(self.heavy_budget_ratio * kv_len))
+                self.recent_budget = max(1, int(self.recent_budget_ratio * kv_len))
+                self.cache_budget = self.heavy_budget + self.recent_budget
+            return result
+
+        # DECODE (q_len == 1): manual attention with H2O
+        cos, sin = position_embeddings
+
+        # Project + apply q_norm and k_norm (Qwen3-VL specific)
+        hidden_shape = (bsz, 1, -1, self.head_dim)
+        query_states = self.original_attn.q_norm(
+            self.original_attn.q_proj(hidden_states).view(hidden_shape)
+        ).transpose(1, 2)  # (bsz, num_heads, 1, head_dim)
+        key_states = self.original_attn.k_norm(
+            self.original_attn.k_proj(hidden_states).view(hidden_shape)
+        ).transpose(1, 2)  # (bsz, num_kv_heads, 1, head_dim)
+        value_states = (
+            self.original_attn.v_proj(hidden_states).view(hidden_shape).transpose(1, 2)
+        )  # (bsz, num_kv_heads, 1, head_dim)
+
+        # Apply standard rotary embeddings
+        if apply_rotary_pos_emb_qwen3vl is not None:
+            query_states, key_states = apply_rotary_pos_emb_qwen3vl(
+                query_states, key_states, cos, sin)
+
+        # Update KV cache
+        if past_key_values is not None:
+            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
+            key_states, value_states = past_key_values.update(
+                key_states, value_states, self.layer_idx, cache_kwargs)
+
+        # Expand KV for GQA
+        key_states_exp = repeat_kv(key_states, self.num_key_value_groups)
+        value_states_exp = repeat_kv(value_states, self.num_key_value_groups)
+
+        kv_seq_len = key_states_exp.shape[-2]
+
+        # Manual attention in float32
+        attn_weights = torch.matmul(
+            query_states.float(), key_states_exp.float().transpose(2, 3)
+        ) * self.scaling
+
+        if attention_mask is not None:
+            causal_mask = attention_mask[:, :, :, :kv_seq_len]
+            attn_weights = attn_weights + causal_mask.float()
+
+        # Apply H2O mask from previous step
+        h2o_active = (self.attention_masks_next is not None and
+                      self.attention_masks_next.shape[-1] == kv_seq_len)
+        if h2o_active:
+            attn_weights = (attn_weights * self.attention_masks_next.float() +
+                            (1 - self.attention_masks_next.float()) *
+                            torch.finfo(attn_weights.dtype).min)
+
+        attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32)
+
+        # H2O: track scores and compute mask for next step
+        h2o_should_track = kv_seq_len >= self.min_seq_for_eviction
+        if h2o_should_track:
+            self._update_h2o_state(attn_weights, kv_seq_len)
+
+        attn_weights_cast = attn_weights.to(query_states.dtype)
+        attn_output = torch.matmul(attn_weights_cast, value_states_exp)
+
+        # Reshape and project output
+        attn_output = attn_output.transpose(1, 2).contiguous()
+        attn_output = attn_output.reshape(bsz, 1, self.hidden_size)
+        attn_output = self.original_attn.o_proj(attn_output)
+
+        return attn_output, None
+
+    def _update_h2o_state(self, attn_weights, kv_seq_len):
+        """Accumulate attention scores and build eviction mask for next step."""
+        device = attn_weights.device
+        current_scores = attn_weights.detach().sum(0).sum(1)  # (num_heads, kv_seq_len)
+
+        if self.h2o_scores is not None:
+            if self.h2o_scores.shape[-1] < kv_seq_len:
+                pad = kv_seq_len - self.h2o_scores.shape[-1]
+                self.h2o_scores = torch.cat(
+                    [self.h2o_scores,
+                     torch.zeros(self.h2o_scores.shape[0], pad,
+                                 dtype=self.h2o_scores.dtype, device=device)],
+                    dim=-1)
+            if self.h2o_scores.shape[-1] == kv_seq_len:
+                current_scores = current_scores + self.h2o_scores
+        else:
+            # First decode step: initialize budgets if not set during prefill
+            if self.heavy_budget is None:
+                self.heavy_budget = max(1, int(self.heavy_budget_ratio * kv_seq_len))
+                self.recent_budget = max(1, int(self.recent_budget_ratio * kv_seq_len))
+                self.cache_budget = self.heavy_budget + self.recent_budget
+
+        self.h2o_scores = current_scores.clone()
+
+        # Build mask for next step (size = kv_seq_len + 1 for the next token)
+        next_len = kv_seq_len + 1
+        attn_mask = torch.ones(current_scores.shape[0], next_len,
+                               dtype=attn_weights.dtype, device=device)
+
+        if kv_seq_len > self.cache_budget:
+            if self.recent_budget > 0:
+                attn_mask[:, :-self.recent_budget] = 0
+                selected_set = self.h2o_scores[:, :-self.recent_budget]
+            else:
+                attn_mask[:, :] = 0
+                selected_set = self.h2o_scores
+
+            if self.heavy_budget > 0:
+                k = min(self.heavy_budget, selected_set.shape[-1])
+                _, keep_topk = selected_set.topk(k=k, dim=-1, largest=True)
+                attn_mask = attn_mask.scatter(-1, keep_topk, 1)
+
+        self.attention_masks_next = attn_mask.unsqueeze(0).unsqueeze(2)
+
+        if self.recent_budget > 0:
+            score_mask = attn_mask[:, :-1].clone()
+            score_mask[:, -self.recent_budget:] = 1
+            self.h2o_scores = self.h2o_scores * score_mask
+
+
 def convert_kvcache_qwen_heavy_recent(model, config):
-    """Convert Qwen2-VL to use H2O attention."""
+    """Convert Qwen2-VL / Qwen2.5-VL / Qwen3-VL to use H2O attention."""
     print(f"\n=== H2O Conversion ===")
-    
+
     replaced_count = 0
-    
-    def should_replace(name, module):
+
+    def get_replacement(name, module):
+        """Return (replacement_type, layer_idx) or None if should not replace."""
         if 'visual' in name.lower():
-            return False
+            return None
+        # Qwen3-VL: use wrapper approach (preserves q_norm/k_norm/rotary correctly)
+        for cls in QWEN3VL_ATTENTION_CLASSES:
+            if cls is not None and isinstance(module, cls):
+                return ('qwen3vl', getattr(module, 'layer_idx', None))
+        # Qwen2-VL / Qwen2.5-VL: use replacement approach
         for cls in QWEN2VL_ATTENTION_CLASSES:
             if cls is not None and isinstance(module, cls):
-                return True
-        return False
-    
+                return ('qwen2vl', getattr(module, 'layer_idx', None))
+        return None
+
     def convert_recursive(parent, parent_name=""):
         nonlocal replaced_count
-        
+
         for name, module in list(parent._modules.items()):
             full_name = f"{parent_name}.{name}" if parent_name else name
-            
+
             if len(list(module.children())) > 0:
                 convert_recursive(module, full_name)
-            
-            if should_replace(full_name, module):
-                layer_idx = getattr(module, 'layer_idx', None)
-                
-                # Create new attention
+
+            replacement = get_replacement(full_name, module)
+            if replacement is None:
+                continue
+
+            replacement_type, layer_idx = replacement
+            device = next(module.parameters()).device
+            dtype = next(module.parameters()).dtype
+
+            if replacement_type == 'qwen3vl':
+                # Wrapper: keep original as sub-module, no weight copying needed
+                new_attn = Qwen3VLAttention_heavy_hitter(module, config)
+                new_attn = new_attn.to(device=device, dtype=dtype)
+                parent._modules[name] = new_attn
+                replaced_count += 1
+                print(f"  Wrapped (Qwen3-VL): {full_name} (layer_idx={layer_idx})")
+
+            else:  # qwen2vl
                 new_attn = QwenAttention_heavy_hitter(config, layer_idx=layer_idx)
-                
+
                 # Copy weights
                 with torch.no_grad():
                     new_attn.q_proj.weight.copy_(module.q_proj.weight)
@@ -339,18 +593,14 @@ def convert_kvcache_qwen_heavy_recent(model, config):
                     new_attn.v_proj.weight.copy_(module.v_proj.weight)
                     new_attn.v_proj.bias.copy_(module.v_proj.bias)
                     new_attn.o_proj.weight.copy_(module.o_proj.weight)
-                
-                # Match device/dtype
-                device = next(module.parameters()).device
-                dtype = next(module.parameters()).dtype
+
                 new_attn = new_attn.to(device=device, dtype=dtype)
-                
                 parent._modules[name] = new_attn
                 replaced_count += 1
-                print(f"  Replaced: {full_name} (layer_idx={layer_idx})")
-    
+                print(f"  Replaced (Qwen2-VL): {full_name} (layer_idx={layer_idx})")
+
     convert_recursive(model)
     print(f"\nReplaced {replaced_count} attention layers")
     print("=== H2O Conversion Complete ===\n")
-    
+
     return model

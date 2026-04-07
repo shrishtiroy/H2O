@@ -25,30 +25,30 @@ __all__ = ['convert_kvcache_llama_heavy_recent', 'LlamaAttention_heavy_hitter']
 
 
 class LlamaAttention_heavy_hitter(nn.Module):
-    """Multi-headed attention from 'Attention Is All You Need' paper with H2O"""
+    """Wrapper around LlamaAttention that adds H2O KV cache eviction.
 
-    def __init__(self, config: LlamaConfig, layer_idx: int = 0):
+    Prefill (q_len > 1): delegates entirely to the original LlamaAttention,
+    ensuring bit-identical results to baseline. Only records the KV cache
+    length for budget computation.
+
+    Decode (q_len == 1): uses manual attention with H2O mask and score
+    accumulation for KV cache eviction.
+    """
+
+    def __init__(self, original_attn: LlamaAttention, config):
         super().__init__()
+        # Keep the original attention module for prefill
+        self.original_attn = original_attn
         self.config = config
-        self.layer_idx = layer_idx
+        self.layer_idx = original_attn.layer_idx
+
+        # Copy attributes needed for manual decode attention
         self.hidden_size = config.hidden_size
         self.num_heads = config.num_attention_heads
         self.head_dim = getattr(config, 'head_dim', self.hidden_size // self.num_heads)
         self.num_key_value_heads = getattr(config, 'num_key_value_heads', self.num_heads)
         self.num_key_value_groups = self.num_heads // self.num_key_value_heads
-        self.max_position_embeddings = config.max_position_embeddings
         self.scaling = self.head_dim ** -0.5
-
-        if (self.head_dim * self.num_heads) != self.hidden_size:
-            raise ValueError(
-                f"hidden_size must be divisible by num_heads (got `hidden_size`: {self.hidden_size}"
-                f" and `num_heads`: {self.num_heads})."
-            )
-
-        self.q_proj = nn.Linear(self.hidden_size, self.num_heads * self.head_dim, bias=getattr(config, 'attention_bias', False))
-        self.k_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias=getattr(config, 'attention_bias', False))
-        self.v_proj = nn.Linear(self.hidden_size, self.num_key_value_heads * self.head_dim, bias=getattr(config, 'attention_bias', False))
-        self.o_proj = nn.Linear(self.num_heads * self.head_dim, self.hidden_size, bias=getattr(config, 'attention_bias', False))
 
         # H2O parameters
         self.heavy_budget_ratio = config.heavy_ratio
@@ -68,67 +68,90 @@ class LlamaAttention_heavy_hitter(nn.Module):
         self.cache_budget = None
         self.previous_scores = None
 
-    def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
-        return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
+    @property
+    def q_proj(self):
+        return self.original_attn.q_proj
+
+    @property
+    def k_proj(self):
+        return self.original_attn.k_proj
+
+    @property
+    def v_proj(self):
+        return self.original_attn.v_proj
+
+    @property
+    def o_proj(self):
+        return self.original_attn.o_proj
 
     def repeat_kv(self, hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
-        """Repeat KV heads for GQA."""
         batch, num_kv_heads, slen, head_dim = hidden_states.shape
         if n_rep == 1:
             return hidden_states
         hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_kv_heads, n_rep, slen, head_dim)
         return hidden_states.reshape(batch, num_kv_heads * n_rep, slen, head_dim)
 
-    def forward(
-        self,
-        hidden_states: torch.Tensor,
-        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        past_key_values = None,
-        cache_position: Optional[torch.LongTensor] = None,
-        # Legacy parameters for older transformers
-        position_ids: Optional[torch.LongTensor] = None,
-        past_key_value: Optional[Tuple[torch.Tensor]] = None,
-        output_attentions: bool = False,
-        use_cache: bool = False,
-        **kwargs,
-    ):
+    def forward(self, hidden_states, **kwargs):
         bsz, q_len, _ = hidden_states.size()
+
+        if q_len > 1:
+            # === PREFILL: Delegate to original attention (bit-identical to baseline) ===
+            result = self.original_attn(hidden_states, **kwargs)
+
+            # Set H2O budgets based on the KV cache length after prefill
+            cache_obj = kwargs.get('past_key_values') or kwargs.get('past_key_value')
+            if cache_obj is not None and hasattr(cache_obj, 'get_seq_length'):
+                kv_len = cache_obj.get_seq_length(self.layer_idx)
+            else:
+                kv_len = q_len
+
+            if self.heavy_budget is None:
+                self.heavy_budget = max(1, int(self.heavy_budget_ratio * kv_len))
+                self.recent_budget = max(1, int(self.recent_budget_ratio * kv_len))
+                self.cache_budget = min(self.heavy_budget + self.recent_budget, kv_len)
+                self.cache_budget_records.append(self.cache_budget)
+                self.input_length.append(kv_len)
+
+            return result
+
+        # === DECODE (q_len == 1): Manual attention with H2O ===
+
+        # Get position embeddings and cache from kwargs
+        position_embeddings = kwargs.get('position_embeddings')
+        attention_mask = kwargs.get('attention_mask')
+        cache_position = kwargs.get('cache_position')
+        past_key_value = kwargs.get('past_key_values') or kwargs.get('past_key_value')
 
         # Project Q, K, V
         query_states = self.q_proj(hidden_states)
         key_states = self.k_proj(hidden_states)
         value_states = self.v_proj(hidden_states)
 
-        query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
-        value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        query_states = query_states.view(bsz, 1, self.num_heads, self.head_dim).transpose(1, 2)
+        key_states = key_states.view(bsz, 1, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(bsz, 1, self.num_key_value_heads, self.head_dim).transpose(1, 2)
 
         # Apply rotary embeddings
         if position_embeddings is not None:
             cos, sin = position_embeddings
             query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
-        # Handle past key values (new Cache API)
-        if past_key_values is not None:
-            # New cache API
+        # Update KV cache
+        if past_key_value is not None and hasattr(past_key_value, 'update'):
             cache_kwargs = {}
             if position_embeddings is not None:
-                cache_kwargs = {"sin": position_embeddings[1], "cos": position_embeddings[0], "cache_position": cache_position}
-            key_states, value_states = past_key_values.update(key_states, value_states, self.layer_idx, cache_kwargs)
-        elif past_key_value is not None:
-            # Legacy tuple API
-            key_states = torch.cat([past_key_value[0], key_states], dim=2)
-            value_states = torch.cat([past_key_value[1], value_states], dim=2)
+                cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
+            key_states, value_states = past_key_value.update(
+                key_states, value_states, self.layer_idx, cache_kwargs)
 
         # Repeat KV for GQA
-        key_states = self.repeat_kv(key_states, self.num_key_value_groups)
-        value_states = self.repeat_kv(value_states, self.num_key_value_groups)
+        key_states_rep = self.repeat_kv(key_states, self.num_key_value_groups)
+        value_states_rep = self.repeat_kv(value_states, self.num_key_value_groups)
 
-        kv_seq_len = key_states.shape[-2]
+        kv_seq_len = key_states_rep.shape[-2]
 
-        # Compute attention weights
-        attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) * self.scaling
+        # Manual attention
+        attn_weights = torch.matmul(query_states, key_states_rep.transpose(2, 3)) * self.scaling
 
         if attention_mask is not None:
             causal_mask = attention_mask
@@ -138,38 +161,42 @@ class LlamaAttention_heavy_hitter(nn.Module):
 
         # Apply H2O mask if available and sizes match
         if self.attention_masks_next is not None:
-            # Check if mask size matches current kv_seq_len
             mask_seq_len = self.attention_masks_next.shape[-1]
             if mask_seq_len == kv_seq_len:
-                attn_weights = attn_weights * self.attention_masks_next + (1 - self.attention_masks_next) * torch.finfo(attn_weights.dtype).min
+                attn_weights = attn_weights * self.attention_masks_next + \
+                    (1 - self.attention_masks_next) * torch.finfo(attn_weights.dtype).min
             else:
-                # Reset H2O state if sequence length changed (new generation)
                 self._reset_masks()
 
-        # Softmax
-        attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+        # Softmax in float32 for stability
+        attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
 
         # H2O: Accumulate attention scores
-        current_scores_sum = attn_weights.sum(0).sum(1)  # (heads, k-tokens)
+        current_scores_sum = attn_weights.sum(0).sum(1)  # (heads, kv_tokens)
 
         if self.previous_scores is not None:
-            if current_scores_sum.shape[-1] > 1:
-                current_scores_sum[:, :-1] += self.previous_scores[:, :current_scores_sum.shape[-1]-1]
+            # Pad previous scores if KV cache grew
+            if current_scores_sum.shape[-1] > self.previous_scores.shape[-1]:
+                pad_len = current_scores_sum.shape[-1] - self.previous_scores.shape[-1]
+                self.previous_scores = F.pad(self.previous_scores, (0, pad_len), value=0.0)
+            current_scores_sum[:, :self.previous_scores.shape[-1]] += self.previous_scores
         else:
-            # Ensure minimum budgets of at least 1 token each (or total input if smaller)
-            input_len = current_scores_sum.shape[-1]
-            self.heavy_budget = max(1, int(self.heavy_budget_ratio * input_len))
-            self.recent_budget = max(1, int(self.recent_budget_ratio * input_len))
-            # Ensure total budget doesn't exceed input length
-            self.cache_budget = min(self.heavy_budget + self.recent_budget, input_len)
-            self.cache_budget_records.append(self.cache_budget)
-            self.input_length.append(attn_weights.shape[-1])
+            # First decode step — set budgets if not already set during prefill
+            if self.heavy_budget is None:
+                input_len = current_scores_sum.shape[-1]
+                self.heavy_budget = max(1, int(self.heavy_budget_ratio * input_len))
+                self.recent_budget = max(1, int(self.recent_budget_ratio * input_len))
+                self.cache_budget = min(self.heavy_budget + self.recent_budget, input_len)
+                self.cache_budget_records.append(self.cache_budget)
+                self.input_length.append(kv_seq_len)
 
-        dtype_attn_weights = attn_weights.dtype
-        attn_weights_device = attn_weights.device
+        dtype_attn = attn_weights.dtype
+        device_attn = attn_weights.device
 
         self.previous_scores = current_scores_sum
-        attn_mask = torch.ones(current_scores_sum.shape[0], current_scores_sum.shape[1] + 1).to(dtype_attn_weights).to(attn_weights_device)
+        attn_mask = torch.ones(
+            current_scores_sum.shape[0], current_scores_sum.shape[1] + 1,
+            dtype=dtype_attn, device=device_attn)
 
         attn_tokens_all = self.previous_scores.shape[-1]
 
@@ -182,7 +209,9 @@ class LlamaAttention_heavy_hitter(nn.Module):
                 selected_set = self.previous_scores
 
             if self.heavy_budget > 0:
-                _, keep_topk = selected_set.topk(k=min(self.heavy_budget, selected_set.shape[-1]), dim=-1, largest=True)
+                _, keep_topk = selected_set.topk(
+                    k=min(self.heavy_budget, selected_set.shape[-1]),
+                    dim=-1, largest=True)
                 attn_mask = attn_mask.scatter(-1, keep_topk, 1)
 
         self.attention_masks_next = attn_mask.clone().unsqueeze(0).unsqueeze(2)
@@ -193,22 +222,21 @@ class LlamaAttention_heavy_hitter(nn.Module):
             self.previous_scores = self.previous_scores * score_mask
 
         # Compute attention output
-        attn_output = torch.matmul(attn_weights, value_states)
+        attn_output = torch.matmul(attn_weights, value_states_rep)
         attn_output = attn_output.transpose(1, 2).contiguous()
-        attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
+        attn_output = attn_output.reshape(bsz, 1, self.hidden_size)
         attn_output = self.o_proj(attn_output)
 
         # Return format depends on API version
         if NEW_API:
-            return attn_output, attn_weights if output_attentions else None
+            return attn_output, None
         else:
-            past_kv = (key_states, value_states) if use_cache else None
-            return attn_output, attn_weights if output_attentions else None, past_kv
-
+            past_kv = (key_states, value_states)
+            return attn_output, None, past_kv
 
 
 def convert_kvcache_llama_heavy_recent(model, config):
-    """Convert LlamaAttention modules to H2O-enabled attention."""
+    """Convert LlamaAttention modules to H2O-enabled attention wrappers."""
 
     def _convert_recursive(module, config, parent_name=""):
         for name, child in module._modules.items():
@@ -218,33 +246,9 @@ def convert_kvcache_llama_heavy_recent(model, config):
                 _convert_recursive(child, config, full_name)
 
             if isinstance(child, LlamaAttention):
-                # Get layer_idx from the original attention module
-                layer_idx = getattr(child, 'layer_idx', 0)
-
-                # Create H2O attention
-                h2o_attn = LlamaAttention_heavy_hitter(config, layer_idx=layer_idx)
-
-                # Copy weights from original attention
-                h2o_attn.q_proj.weight.data = child.q_proj.weight.data.clone()
-                h2o_attn.k_proj.weight.data = child.k_proj.weight.data.clone()
-                h2o_attn.v_proj.weight.data = child.v_proj.weight.data.clone()
-                h2o_attn.o_proj.weight.data = child.o_proj.weight.data.clone()
-
-                # Copy biases if they exist
-                if hasattr(child.q_proj, 'bias') and child.q_proj.bias is not None:
-                    h2o_attn.q_proj.bias.data = child.q_proj.bias.data.clone()
-                if hasattr(child.k_proj, 'bias') and child.k_proj.bias is not None:
-                    h2o_attn.k_proj.bias.data = child.k_proj.bias.data.clone()
-                if hasattr(child.v_proj, 'bias') and child.v_proj.bias is not None:
-                    h2o_attn.v_proj.bias.data = child.v_proj.bias.data.clone()
-                if hasattr(child.o_proj, 'bias') and child.o_proj.bias is not None:
-                    h2o_attn.o_proj.bias.data = child.o_proj.bias.data.clone()
-
-                # Move to same device and dtype
-                h2o_attn = h2o_attn.to(child.q_proj.weight.device).to(child.q_proj.weight.dtype)
-
+                # Wrap with H2O (keeps original as sub-module)
+                h2o_attn = LlamaAttention_heavy_hitter(child, config)
                 module._modules[name] = h2o_attn
 
     _convert_recursive(model, config)
     return model
-

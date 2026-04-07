@@ -1,0 +1,4211 @@
+{
+  "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "dataset": "SQuAD (long-context)",
+  "num_samples": 50,
+  "target_context_tokens": 1800,
+  "max_new_tokens": 50,
+  "summary": [
+    {
+      "label": "Baseline",
+      "heavy_ratio": null,
+      "recent_ratio": null,
+      "exact_match": 22.0,
+      "f1": 44.0,
+      "substring_match": 70.0,
+      "perplexity": 9.18,
+      "num_samples": 50,
+      "em_beginning": 20.0,
+      "f1_beginning": 46.4,
+      "sub_beginning": 70.0,
+      "n_beginning": 10,
+      "em_middle": 18.5,
+      "f1_middle": 40.3,
+      "sub_middle": 66.7,
+      "n_middle": 27,
+      "em_end": 30.8,
+      "f1_end": 50.0,
+      "sub_end": 76.9,
+      "n_end": 13,
+      "peak_memory_mb": 2274.0,
+      "time_seconds": 1630.2,
+      "throughput_tok_per_sec": 52.7
+    },
+    {
+      "label": "H2O(0.1/0.1)",
+      "heavy_ratio": 0.1,
+      "recent_ratio": 0.1,
+      "exact_match": 24.0,
+      "f1": 41.4,
+      "substring_match": 56.0,
+      "perplexity": 10.53,
+      "num_samples": 50,
+      "em_beginning": 20.0,
+      "f1_beginning": 39.8,
+      "sub_beginning": 50.0,
+      "n_beginning": 10,
+      "em_middle": 22.2,
+      "f1_middle": 37.2,
+      "sub_middle": 48.1,
+      "n_middle": 27,
+      "em_end": 30.8,
+      "f1_end": 51.6,
+      "sub_end": 76.9,
+      "n_end": 13,
+      "peak_memory_mb": 2274.0,
+      "time_seconds": 2310.1,
+      "throughput_tok_per_sec": 37.2
+    },
+    {
+      "label": "H2O(0.2/0.2)",
+      "heavy_ratio": 0.2,
+      "recent_ratio": 0.2,
+      "exact_match": 24.0,
+      "f1": 44.3,
+      "substring_match": 60.0,
+      "perplexity": 9.81,
+      "num_samples": 50,
+      "em_beginning": 20.0,
+      "f1_beginning": 42.2,
+      "sub_beginning": 60.0,
+      "n_beginning": 10,
+      "em_middle": 22.2,
+      "f1_middle": 42.4,
+      "sub_middle": 51.9,
+      "n_middle": 27,
+      "em_end": 30.8,
+      "f1_end": 50.0,
+      "sub_end": 76.9,
+      "n_end": 13,
+      "peak_memory_mb": 2274.0,
+      "time_seconds": 2334.4,
+      "throughput_tok_per_sec": 36.8
+    },
+    {
+      "label": "H2O(0.3/0.3)",
+      "heavy_ratio": 0.3,
+      "recent_ratio": 0.3,
+      "exact_match": 24.0,
+      "f1": 46.1,
+      "substring_match": 66.0,
+      "perplexity": 9.55,
+      "num_samples": 50,
+      "em_beginning": 20.0,
+      "f1_beginning": 47.4,
+      "sub_beginning": 60.0,
+      "n_beginning": 10,
+      "em_middle": 22.2,
+      "f1_middle": 43.7,
+      "sub_middle": 63.0,
+      "n_middle": 27,
+      "em_end": 30.8,
+      "f1_end": 50.0,
+      "sub_end": 76.9,
+      "n_end": 13,
+      "peak_memory_mb": 2274.0,
+      "time_seconds": 2315.2,
+      "throughput_tok_per_sec": 37.1
+    },
+    {
+      "label": "H2O(0.5/0.5)",
+      "heavy_ratio": 0.5,
+      "recent_ratio": 0.5,
+      "exact_match": 22.0,
+      "f1": 44.0,
+      "substring_match": 70.0,
+      "perplexity": 9.31,
+      "num_samples": 50,
+      "em_beginning": 20.0,
+      "f1_beginning": 46.4,
+      "sub_beginning": 70.0,
+      "n_beginning": 10,
+      "em_middle": 18.5,
+      "f1_middle": 40.3,
+      "sub_middle": 66.7,
+      "n_middle": 27,
+      "em_end": 30.8,
+      "f1_end": 50.0,
+      "sub_end": 76.9,
+      "n_end": 13,
+      "peak_memory_mb": 2274.0,
+      "time_seconds": 2325.3,
+      "throughput_tok_per_sec": 36.9
+    }
+  ],
+  "per_sample": {
+    "baseline": [
+      {
+        "question": "What feature of the Shah's army enable the weary Mongol forces easy early victories?",
+        "gold_answers": [
+          "fragmentation",
+          "fragmentation",
+          "fragmentation"
+        ],
+        "prediction": "The Shah's army was split by diverse internecine feuds and by the Shah's decision to divide his army into small groups concentrated in various cities.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.22,
+        "gold_position": "middle",
+        "num_tokens": 1687,
+        "num_passages": 6
+      },
+      {
+        "question": "What generally does not allow citizens to sue other citizens?",
+        "gold_answers": [
+          "Directives",
+          "Directives",
+          "Directives"
+        ],
+        "prediction": "Directives do not have direct effect.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 10.4,
+        "gold_position": "end",
+        "num_tokens": 1770,
+        "num_passages": 7
+      },
+      {
+        "question": "By which year did full sized American cars shrink to be smaller?",
+        "gold_answers": [
+          "1979",
+          "1979",
+          "1979",
+          "1979",
+          "1979"
+        ],
+        "prediction": "1979",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.6,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 8
+      },
+      {
+        "question": "What is the Mongolian name of the first Mongolian laws codified in writing?",
+        "gold_answers": [
+          "Ikh Zasag",
+          "Ikh Zasag (",
+          "Ikh Zasag"
+        ],
+        "prediction": "Ikh Zasag (Great Administration)",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.6,
+        "gold_position": "end",
+        "num_tokens": 1762,
+        "num_passages": 8
+      },
+      {
+        "question": "What kind of membrane do primary chloroplasts have?",
+        "gold_answers": [
+          "double",
+          "double membrane",
+          "double membrane"
+        ],
+        "prediction": "They have additional membranes outside of the original two membranes.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.44,
+        "gold_position": "middle",
+        "num_tokens": 1690,
+        "num_passages": 9
+      },
+      {
+        "question": "What cultures were part of Kublai's administration?",
+        "gold_answers": [
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists",
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+          "the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists"
+        ],
+        "prediction": "The bureaucracy created by Kublai Khan reflected various cultures in the empire, including that of the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+        "exact_match": 0,
+        "f1": 0.5517241379310345,
+        "substring_match": 1,
+        "perplexity": 9.23,
+        "gold_position": "middle",
+        "num_tokens": 1663,
+        "num_passages": 9
+      },
+      {
+        "question": "By what process can active immunity be generated in an artificial manner?",
+        "gold_answers": [
+          "vaccination",
+          "vaccination",
+          "vaccination"
+        ],
+        "prediction": "By vaccination.",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 8.83,
+        "gold_position": "beginning",
+        "num_tokens": 1600,
+        "num_passages": 10
+      },
+      {
+        "question": "By August 2010 how many public schools did Victoria have?",
+        "gold_answers": [
+          "1,548",
+          "1,548",
+          "1,548"
+        ],
+        "prediction": "1,548",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 6.45,
+        "gold_position": "end",
+        "num_tokens": 1727,
+        "num_passages": 10
+      },
+      {
+        "question": "What continent are the Canarian Islands off the coast of?",
+        "gold_answers": [
+          "Africa",
+          "Africa",
+          "Africa"
+        ],
+        "prediction": "The Canarian Islands are located off the coast of Africa.",
+        "exact_match": 0,
+        "f1": 0.2222222222222222,
+        "substring_match": 1,
+        "perplexity": 7.92,
+        "gold_position": "beginning",
+        "num_tokens": 1747,
+        "num_passages": 10
+      },
+      {
+        "question": "What experiences acceleration when external force is applied to a system?",
+        "gold_answers": [
+          "center of mass",
+          "center of mass",
+          "the center of mass",
+          "the center of mass",
+          "the center of mass"
+        ],
+        "prediction": "In a closed system of particles, there is no internal force that is unbalanced. That is, the action-reaction force shared between any two objects in a closed system will not cause the center of mass of the system to accelerate.",
+        "exact_match": 0,
+        "f1": 0.15789473684210528,
+        "substring_match": 1,
+        "perplexity": 8.67,
+        "gold_position": "middle",
+        "num_tokens": 1789,
+        "num_passages": 10
+      },
+      {
+        "question": "What candy company did Edward John Noble own?",
+        "gold_answers": [
+          "Life Savers candy",
+          "Life Savers",
+          "Life Savers"
+        ],
+        "prediction": "Life Savers.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.13,
+        "gold_position": "middle",
+        "num_tokens": 1812,
+        "num_passages": 10
+      },
+      {
+        "question": "How common was the form of corporal punishment in the past?",
+        "gold_answers": [
+          "one of the most common",
+          "one of the most common",
+          "most common",
+          "most common"
+        ],
+        "prediction": "It was common in many Western countries, and some others have now banned it.",
+        "exact_match": 0,
+        "f1": 0.125,
+        "substring_match": 0,
+        "perplexity": 8.46,
+        "gold_position": "beginning",
+        "num_tokens": 1771,
+        "num_passages": 10
+      },
+      {
+        "question": "How are eggs and sperm released?",
+        "gold_answers": [
+          "via pores in the epidermis",
+          "pores in the epidermis",
+          "via pores in the epidermis"
+        ],
+        "prediction": "Fertilization is external in most species, but platyctenids use internal fertilization and keep the eggs in brood chambers until they hatch. Self-fertilization has occasionally been seen in species of the genus",
+        "exact_match": 0,
+        "f1": 0.0625,
+        "substring_match": 0,
+        "perplexity": 9.24,
+        "gold_position": "end",
+        "num_tokens": 1799,
+        "num_passages": 10
+      },
+      {
+        "question": "How many Doctor Who soundtracks have been released since 2005?",
+        "gold_answers": [
+          "Six",
+          "Six",
+          "Six"
+        ],
+        "prediction": "Six.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.17,
+        "gold_position": "middle",
+        "num_tokens": 1715,
+        "num_passages": 10
+      },
+      {
+        "question": "Who decides who gets to speak in the chamber debates?",
+        "gold_answers": [
+          "The Presiding Officer",
+          "Presiding Officer",
+          "The Presiding Officer"
+        ],
+        "prediction": "The Presiding Officer (or Deputy Presiding Officer) decides who speaks in chamber debates and the amount of time for which they are allowed to speak.",
+        "exact_match": 0,
+        "f1": 0.16,
+        "substring_match": 1,
+        "perplexity": 8.97,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 10
+      },
+      {
+        "question": "What would Mongol armies divert in order to cut off the resources of cities they were attacking?",
+        "gold_answers": [
+          "rivers",
+          "rivers",
+          "rivers"
+        ],
+        "prediction": "They would divert certain rivers, taking enemy prisoners and driving them in front of the army, and adopting new ideas, techniques, and tools from the people they conquered, particularly in employing Muslim and Chinese siege engines and engineers to",
+        "exact_match": 0,
+        "f1": 0.052631578947368425,
+        "substring_match": 1,
+        "perplexity": 9.69,
+        "gold_position": "beginning",
+        "num_tokens": 1667,
+        "num_passages": 10
+      },
+      {
+        "question": "What series is the longest running program in ABC history?",
+        "gold_answers": [
+          "General Hospital",
+          "General Hospital",
+          "General Hospital"
+        ],
+        "prediction": "The longest running entertainment program in the history of ABC television is Good Morning America, which has been on the air since 1975.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.12,
+        "gold_position": "middle",
+        "num_tokens": 1759,
+        "num_passages": 10
+      },
+      {
+        "question": "Which Mongolian word meaning wide-spreading may have contributed to the appellation Genghis?",
+        "gold_answers": [
+          "tenggis",
+          "tenggis",
+          "tenggis"
+        ],
+        "prediction": "Zh\u00e8ng (Chinese: \u6b63) meaning \"right\", \"just\", or \"true\", would have received the Mongolian adjectival modifier -s, creating \"Jenggis\", which in medieval romanization would be",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.15,
+        "gold_position": "middle",
+        "num_tokens": 1585,
+        "num_passages": 10
+      },
+      {
+        "question": "What English law made that country more welcoming to Huguenots?",
+        "gold_answers": [
+          "Foreign Protestants Naturalization Act",
+          "Foreign Protestants Naturalization Act,",
+          "Foreign Protestants Naturalization Act"
+        ],
+        "prediction": "The Foreign Protestants Naturalization Act of 1708.",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.03,
+        "gold_position": "middle",
+        "num_tokens": 1387,
+        "num_passages": 9
+      },
+      {
+        "question": "What is an annual two-day multicultural event held in Newcastle in late August?",
+        "gold_answers": [
+          "Newcastle Mela",
+          "Newcastle Mela",
+          "Newcastle Mela"
+        ],
+        "prediction": "Newcastle Mela.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.88,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 9
+      },
+      {
+        "question": "What is the earliest known movie featuring scenes filmed outdoors in Newcastle?",
+        "gold_answers": [
+          "On the Night of the Fire",
+          "On the Night of the Fire",
+          "On the Night of the Fire (1939),"
+        ],
+        "prediction": "The Clouded Yellow (1951)",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.59,
+        "gold_position": "middle",
+        "num_tokens": 1539,
+        "num_passages": 8
+      },
+      {
+        "question": "When did the V&A acquired the Costiff collection?",
+        "gold_answers": [
+          "2002",
+          "2002",
+          "2002"
+        ],
+        "prediction": "The Costiff collection of 178 Vivienne Westwood costumes was acquired by the V&A in 2002.",
+        "exact_match": 0,
+        "f1": 0.14285714285714288,
+        "substring_match": 1,
+        "perplexity": 12.17,
+        "gold_position": "middle",
+        "num_tokens": 1702,
+        "num_passages": 8
+      },
+      {
+        "question": "Who was Tesla prejudiced against?",
+        "gold_answers": [
+          "overweight people",
+          "overweight people",
+          "overweight people"
+        ],
+        "prediction": "Tesla could be harsh at times and openly expressed disgust for overweight people, such as when he fired a secretary because of her weight.:110 He was quick to criticize clothing; on several occasions, T",
+        "exact_match": 0,
+        "f1": 0.1142857142857143,
+        "substring_match": 1,
+        "perplexity": 10.29,
+        "gold_position": "middle",
+        "num_tokens": 1776,
+        "num_passages": 8
+      },
+      {
+        "question": "Why are chloroplasts of interest in GMO crops?",
+        "gold_answers": [
+          "transgenes in these plastids cannot be disseminated by pollen",
+          "chloroplasts are not inherited from the male parent",
+          "transgenes in these plastids cannot be disseminated by pollen"
+        ],
+        "prediction": "Chloroplasts are responsible for photosynthesis, the process by which plants convert light energy into chemical energy. By developing genetically modified crops, researchers can manipulate the genes that control chloroplast development and function,",
+        "exact_match": 0,
+        "f1": 0.10810810810810811,
+        "substring_match": 0,
+        "perplexity": 10.04,
+        "gold_position": "beginning",
+        "num_tokens": 1707,
+        "num_passages": 7
+      },
+      {
+        "question": "What minimalist composer is also a university graduate?",
+        "gold_answers": [
+          "Philip Glass",
+          "Philip Glass",
+          "Philip Glass"
+        ],
+        "prediction": "Philip Glass",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.25,
+        "gold_position": "middle",
+        "num_tokens": 1763,
+        "num_passages": 8
+      },
+      {
+        "question": "What do chloroplasts do like mitochondria?",
+        "gold_answers": [
+          "generate ATP energy",
+          "use the potential energy stored in an H+",
+          "use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy"
+        ],
+        "prediction": "Chloroplasts use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy. They capture light energy to energize electrons taken from water, and release them down an electron transport chain. The molecules between",
+        "exact_match": 0,
+        "f1": 0.5833333333333334,
+        "substring_match": 1,
+        "perplexity": 7.27,
+        "gold_position": "end",
+        "num_tokens": 1626,
+        "num_passages": 7
+      },
+      {
+        "question": "The region spans starting at islands found in which body of water?",
+        "gold_answers": [
+          "Pacific Ocean",
+          "Pacific Ocean",
+          "Pacific Ocean"
+        ],
+        "prediction": "Pacific Ocean islands",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 8.97,
+        "gold_position": "middle",
+        "num_tokens": 1615,
+        "num_passages": 7
+      },
+      {
+        "question": "Theories on imperialism use which country as a model?",
+        "gold_answers": [
+          "British",
+          "British",
+          "British",
+          "British"
+        ],
+        "prediction": "Imperialism, the Highest Stage of Capitalism",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.3,
+        "gold_position": "middle",
+        "num_tokens": 1722,
+        "num_passages": 7
+      },
+      {
+        "question": "The term Huguenot was originally meant to confer?",
+        "gold_answers": [
+          "derision",
+          "derision",
+          "derision"
+        ],
+        "prediction": "A derogatory nickname for Swiss republicanism.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.4,
+        "gold_position": "end",
+        "num_tokens": 1767,
+        "num_passages": 8
+      },
+      {
+        "question": "What type of group is The Islamic State?",
+        "gold_answers": [
+          "Wahhabi/Salafi jihadist extremist militant",
+          "Wahhabi/Salafi jihadist extremist militant group",
+          "extremist militant"
+        ],
+        "prediction": "A Wahhabi/Salafi jihadist extremist militant group which is led by and mainly composed of Sunni Arabs from Iraq and Syria.",
+        "exact_match": 0,
+        "f1": 0.4166666666666667,
+        "substring_match": 1,
+        "perplexity": 9.7,
+        "gold_position": "middle",
+        "num_tokens": 1760,
+        "num_passages": 9
+      },
+      {
+        "question": "What are three examples of complexity classes associated with definitions established by probabilistic Turing machines?",
+        "gold_answers": [
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP"
+        ],
+        "prediction": "1. BPP, 2. ZPP, 3. RP",
+        "exact_match": 0,
+        "f1": 0.6,
+        "substring_match": 0,
+        "perplexity": 10.28,
+        "gold_position": "beginning",
+        "num_tokens": 1788,
+        "num_passages": 9
+      },
+      {
+        "question": "When did President Uhuru Kenyatta sign a Security Law Amendment Bill?",
+        "gold_answers": [
+          "December 2014",
+          "December 2014",
+          "December 2014"
+        ],
+        "prediction": "President Uhuru Kenyatta signed the Security Law Amendment Bill on 19 December 2014.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 9.29,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 8
+      },
+      {
+        "question": "When did Martin Luther publish his translation of the New Testament?",
+        "gold_answers": [
+          "1522",
+          "1522",
+          "1522"
+        ],
+        "prediction": "Luther published his German translation of the New Testament in 1522.",
+        "exact_match": 0,
+        "f1": 0.18181818181818182,
+        "substring_match": 1,
+        "perplexity": 10.18,
+        "gold_position": "middle",
+        "num_tokens": 1750,
+        "num_passages": 8
+      },
+      {
+        "question": "What number did early Greeks not regard as a true number?",
+        "gold_answers": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "prediction": "1",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 7.27,
+        "gold_position": "beginning",
+        "num_tokens": 1719,
+        "num_passages": 8
+      },
+      {
+        "question": "What did John Dalton think that all elements were in number present in compounds?",
+        "gold_answers": [
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic"
+        ],
+        "prediction": "All elements were monatomic and had the simplest atomic ratios with respect to one another.",
+        "exact_match": 0,
+        "f1": 0.13333333333333333,
+        "substring_match": 1,
+        "perplexity": 8.02,
+        "gold_position": "middle",
+        "num_tokens": 1802,
+        "num_passages": 9
+      },
+      {
+        "question": "Who took command of French in spring of 1753?",
+        "gold_answers": [
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue"
+        ],
+        "prediction": "Paul Marin de la Malgue.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.02,
+        "gold_position": "end",
+        "num_tokens": 1741,
+        "num_passages": 9
+      },
+      {
+        "question": "What term is used to explain a change in the appearance of Doctor Who?",
+        "gold_answers": [
+          "regeneration",
+          "regeneration",
+          "renewal"
+        ],
+        "prediction": "Regeneration",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.15,
+        "gold_position": "beginning",
+        "num_tokens": 1770,
+        "num_passages": 10
+      },
+      {
+        "question": "What is consultant pharmacy mainly concerned with?",
+        "gold_answers": [
+          "medication regimen review",
+          "medication regimen review",
+          "medication regimen review"
+        ],
+        "prediction": "Consultant pharmacy mainly focuses on medication regimen review (i.e. \"cognitive services\") rather than actual dispensing of drugs.",
+        "exact_match": 0,
+        "f1": 0.3,
+        "substring_match": 1,
+        "perplexity": 9.93,
+        "gold_position": "end",
+        "num_tokens": 1724,
+        "num_passages": 10
+      },
+      {
+        "question": "Who created the photographic series titled Animal Locomotion?",
+        "gold_answers": [
+          "Eadweard Muybridge",
+          "Eadweard Muybridge's",
+          "Eadweard Muybridge"
+        ],
+        "prediction": "Eadweard Muybridge's photographs of Animal Locomotion.",
+        "exact_match": 0,
+        "f1": 0.5,
+        "substring_match": 1,
+        "perplexity": 9.74,
+        "gold_position": "middle",
+        "num_tokens": 1809,
+        "num_passages": 11
+      },
+      {
+        "question": "During what period did the Tower Theatre re-open?",
+        "gold_answers": [
+          "late 1970s",
+          "late 1970s",
+          "late 1970s"
+        ],
+        "prediction": "After decades of neglect and suburban flight, the neighborhood revival followed the re-opening of the Tower Theatre in the late 1970s, which at that time showed second and third run movies, along with classic films",
+        "exact_match": 0,
+        "f1": 0.12121212121212122,
+        "substring_match": 1,
+        "perplexity": 9.69,
+        "gold_position": "middle",
+        "num_tokens": 1742,
+        "num_passages": 11
+      },
+      {
+        "question": "where is the Victoria and Albert Museum located?",
+        "gold_answers": [
+          "The V&A is located in the Brompton district of the Royal Borough of Kensington and Chelsea",
+          "London",
+          "London",
+          "in the Brompton district of the Royal Borough of Kensington and Chelsea"
+        ],
+        "prediction": "The Victoria and Albert Museum (often abbreviated as the V&A) is located in the Brompton district of the Royal Borough of Kensington and Chelsea, in an area that has become known as \"Albert",
+        "exact_match": 0,
+        "f1": 0.6341463414634146,
+        "substring_match": 1,
+        "perplexity": 8.7,
+        "gold_position": "beginning",
+        "num_tokens": 1710,
+        "num_passages": 11
+      },
+      {
+        "question": "What South African law recognized two types of schools?",
+        "gold_answers": [
+          "South African Schools Act",
+          "South African Schools Act",
+          "South African Schools Act"
+        ],
+        "prediction": "The private sector has grown ever since. After the abolition of apartheid, the laws governing private education in South Africa changed significantly. The South African Schools Act of 1996 recognised two categories of schools: \"public\"",
+        "exact_match": 0,
+        "f1": 0.2285714285714286,
+        "substring_match": 1,
+        "perplexity": 8.77,
+        "gold_position": "beginning",
+        "num_tokens": 1687,
+        "num_passages": 11
+      },
+      {
+        "question": "Concrete bounding of computation time frequently produces complexity classes contingent upon what?",
+        "gold_answers": [
+          "chosen machine model",
+          "the chosen machine model",
+          "the chosen machine model"
+        ],
+        "prediction": "The choice of machine model.",
+        "exact_match": 0,
+        "f1": 0.5714285714285715,
+        "substring_match": 0,
+        "perplexity": 8.99,
+        "gold_position": "middle",
+        "num_tokens": 1739,
+        "num_passages": 11
+      },
+      {
+        "question": "What did Luther deny the rebels?",
+        "gold_answers": [
+          "backing for the uprising",
+          "backing",
+          "backing"
+        ],
+        "prediction": "Luther denied the rebels' right to use arms against the imperial authorities.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.06,
+        "gold_position": "end",
+        "num_tokens": 1826,
+        "num_passages": 12
+      },
+      {
+        "question": "What did Baran develop during research at RAND ",
+        "gold_answers": [
+          "the concept of distributed adaptive message block switching",
+          "the concept of distributed adaptive message block switching",
+          "concept of distributed adaptive message block switching"
+        ],
+        "prediction": "Distributed adaptive message block switching",
+        "exact_match": 0,
+        "f1": 0.8333333333333333,
+        "substring_match": 0,
+        "perplexity": 9.18,
+        "gold_position": "middle",
+        "num_tokens": 1708,
+        "num_passages": 11
+      },
+      {
+        "question": "Which comedian did a parody where a Dalek appears?",
+        "gold_answers": [
+          "Spike Milligan",
+          "Spike Milligan",
+          "Spike Milligan"
+        ],
+        "prediction": "Jon Culshaw.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.04,
+        "gold_position": "middle",
+        "num_tokens": 1677,
+        "num_passages": 11
+      },
+      {
+        "question": "What was Tesla afraid someone was trying to do with his invention?",
+        "gold_answers": [
+          "steal the invention",
+          "steal",
+          "steal"
+        ],
+        "prediction": "The thieves or spies were trying to steal the invention.",
+        "exact_match": 0,
+        "f1": 0.4,
+        "substring_match": 1,
+        "perplexity": 9.35,
+        "gold_position": "middle",
+        "num_tokens": 1698,
+        "num_passages": 11
+      },
+      {
+        "question": "What usually takes reenergized electrons?",
+        "gold_answers": [
+          "NADP+",
+          "photosystem I",
+          "NADP+"
+        ],
+        "prediction": "NADP+",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.59,
+        "gold_position": "end",
+        "num_tokens": 1821,
+        "num_passages": 11
+      },
+      {
+        "question": "Who was Louis XIV's main rival?",
+        "gold_answers": [
+          "William III of Orange",
+          "Stadtholder William III of Orange",
+          "Stadtholder William III of Orange"
+        ],
+        "prediction": "The League of Augsburg was formed by Stadtholder William III of Orange, who emerged as the strongest opponent of king Louis XIV after the French attacked the Dutch Republic in 1672.",
+        "exact_match": 0,
+        "f1": 0.3125,
+        "substring_match": 1,
+        "perplexity": 10.79,
+        "gold_position": "end",
+        "num_tokens": 1679,
+        "num_passages": 10
+      },
+      {
+        "question": "What graphic designer designed the ABC logo in it's most known form?",
+        "gold_answers": [
+          "Paul Rand",
+          "Paul Rand",
+          "Paul Rand"
+        ],
+        "prediction": "Paul Rand",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.49,
+        "gold_position": "middle",
+        "num_tokens": 1714,
+        "num_passages": 10
+      }
+    ],
+    "h2o_0.1": [
+      {
+        "question": "What feature of the Shah's army enable the weary Mongol forces easy early victories?",
+        "gold_answers": [
+          "fragmentation",
+          "fragmentation",
+          "fragmentation"
+        ],
+        "prediction": "The Shah's army was split into small groups, each with a commander, and each group was led by a skilled commander. This allowed the weary Mongol forces to easily break through the enemy lines and attack the enemy's rear.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 11.41,
+        "gold_position": "middle",
+        "num_tokens": 1687,
+        "num_passages": 6
+      },
+      {
+        "question": "What generally does not allow citizens to sue other citizens?",
+        "gold_answers": [
+          "Directives",
+          "Directives",
+          "Directives"
+        ],
+        "prediction": "Directives do not have direct effect.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 11.59,
+        "gold_position": "end",
+        "num_tokens": 1770,
+        "num_passages": 7
+      },
+      {
+        "question": "By which year did full sized American cars shrink to be smaller?",
+        "gold_answers": [
+          "1979",
+          "1979",
+          "1979",
+          "1979",
+          "1979"
+        ],
+        "prediction": "1979",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.17,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 8
+      },
+      {
+        "question": "What is the Mongolian name of the first Mongolian laws codified in writing?",
+        "gold_answers": [
+          "Ikh Zasag",
+          "Ikh Zasag (",
+          "Ikh Zasag"
+        ],
+        "prediction": "Ikh Zasag (Great Administration)",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 10.31,
+        "gold_position": "end",
+        "num_tokens": 1762,
+        "num_passages": 8
+      },
+      {
+        "question": "What kind of membrane do primary chloroplasts have?",
+        "gold_answers": [
+          "double",
+          "double membrane",
+          "double membrane"
+        ],
+        "prediction": "They have additional membranes outside their original two membranes.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.73,
+        "gold_position": "middle",
+        "num_tokens": 1690,
+        "num_passages": 9
+      },
+      {
+        "question": "What cultures were part of Kublai's administration?",
+        "gold_answers": [
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists",
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+          "the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists"
+        ],
+        "prediction": "The bureaucracy of Kublai Khan's administration was based on the Chinese model, with a mix of elements from native Chinese, Khitan, and Mongolian cultures.",
+        "exact_match": 0,
+        "f1": 0.13793103448275862,
+        "substring_match": 0,
+        "perplexity": 11.09,
+        "gold_position": "middle",
+        "num_tokens": 1663,
+        "num_passages": 9
+      },
+      {
+        "question": "By what process can active immunity be generated in an artificial manner?",
+        "gold_answers": [
+          "vaccination",
+          "vaccination",
+          "vaccination"
+        ],
+        "prediction": "By vaccination.",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 10.41,
+        "gold_position": "beginning",
+        "num_tokens": 1600,
+        "num_passages": 10
+      },
+      {
+        "question": "By August 2010 how many public schools did Victoria have?",
+        "gold_answers": [
+          "1,548",
+          "1,548",
+          "1,548"
+        ],
+        "prediction": "1,548",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 7.36,
+        "gold_position": "end",
+        "num_tokens": 1727,
+        "num_passages": 10
+      },
+      {
+        "question": "What continent are the Canarian Islands off the coast of?",
+        "gold_answers": [
+          "Africa",
+          "Africa",
+          "Africa"
+        ],
+        "prediction": "The Canarian Islands are located off the coast of Central America.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.96,
+        "gold_position": "beginning",
+        "num_tokens": 1747,
+        "num_passages": 10
+      },
+      {
+        "question": "What experiences acceleration when external force is applied to a system?",
+        "gold_answers": [
+          "center of mass",
+          "center of mass",
+          "the center of mass",
+          "the center of mass",
+          "the center of mass"
+        ],
+        "prediction": "In a closed system, the center of mass of the system is unbalanced by an external force, and the system experiences an acceleration. In a closed system, the center of mass is the point of maximum gravitational force, and the system experiences",
+        "exact_match": 0,
+        "f1": 0.17142857142857143,
+        "substring_match": 1,
+        "perplexity": 9.75,
+        "gold_position": "middle",
+        "num_tokens": 1789,
+        "num_passages": 10
+      },
+      {
+        "question": "What candy company did Edward John Noble own?",
+        "gold_answers": [
+          "Life Savers candy",
+          "Life Savers",
+          "Life Savers"
+        ],
+        "prediction": "Life Savers.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.42,
+        "gold_position": "middle",
+        "num_tokens": 1812,
+        "num_passages": 10
+      },
+      {
+        "question": "How common was the form of corporal punishment in the past?",
+        "gold_answers": [
+          "one of the most common",
+          "one of the most common",
+          "most common",
+          "most common"
+        ],
+        "prediction": "It was common in many Western societies, including the United States following the US Supreme Court decision in 1971 banning the use of corporal punishment in schools.",
+        "exact_match": 0,
+        "f1": 0.14285714285714285,
+        "substring_match": 0,
+        "perplexity": 9.48,
+        "gold_position": "beginning",
+        "num_tokens": 1771,
+        "num_passages": 10
+      },
+      {
+        "question": "How are eggs and sperm released?",
+        "gold_answers": [
+          "via pores in the epidermis",
+          "pores in the epidermis",
+          "via pores in the epidermis"
+        ],
+        "prediction": "Fertilization is external in most species, but platyctenids use internal fertilization and keep the eggs in brood chambers until they hatch. Self-fertilization has occasionally been seen in species of the genus",
+        "exact_match": 0,
+        "f1": 0.0625,
+        "substring_match": 0,
+        "perplexity": 10.54,
+        "gold_position": "end",
+        "num_tokens": 1799,
+        "num_passages": 10
+      },
+      {
+        "question": "How many Doctor Who soundtracks have been released since 2005?",
+        "gold_answers": [
+          "Six",
+          "Six",
+          "Six"
+        ],
+        "prediction": "Six.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.26,
+        "gold_position": "middle",
+        "num_tokens": 1715,
+        "num_passages": 10
+      },
+      {
+        "question": "Who decides who gets to speak in the chamber debates?",
+        "gold_answers": [
+          "The Presiding Officer",
+          "Presiding Officer",
+          "The Presiding Officer"
+        ],
+        "prediction": "The Presiding Officer (or Deputy Presiding Officer) decides who gets to speak in the chamber debates.",
+        "exact_match": 0,
+        "f1": 0.25,
+        "substring_match": 1,
+        "perplexity": 10.02,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 10
+      },
+      {
+        "question": "What would Mongol armies divert in order to cut off the resources of cities they were attacking?",
+        "gold_answers": [
+          "rivers",
+          "rivers",
+          "rivers"
+        ],
+        "prediction": "They would divert the water supply of the city.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 11.5,
+        "gold_position": "beginning",
+        "num_tokens": 1667,
+        "num_passages": 10
+      },
+      {
+        "question": "What series is the longest running program in ABC history?",
+        "gold_answers": [
+          "General Hospital",
+          "General Hospital",
+          "General Hospital"
+        ],
+        "prediction": "The longest running program in ABC history is Good Morning America, which has been on the air since 1975.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.19,
+        "gold_position": "middle",
+        "num_tokens": 1759,
+        "num_passages": 10
+      },
+      {
+        "question": "Which Mongolian word meaning wide-spreading may have contributed to the appellation Genghis?",
+        "gold_answers": [
+          "tenggis",
+          "tenggis",
+          "tenggis"
+        ],
+        "prediction": "Zh\u00e8ng (Chinese: \u6b63) meaning \"right\" or \"just\" in medieval Mongolian, which in medieval Chinese was written as \"Jenggis\" (Chinese: \u912d\u5ee3\u53f8)",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.66,
+        "gold_position": "middle",
+        "num_tokens": 1585,
+        "num_passages": 10
+      },
+      {
+        "question": "What English law made that country more welcoming to Huguenots?",
+        "gold_answers": [
+          "Foreign Protestants Naturalization Act",
+          "Foreign Protestants Naturalization Act,",
+          "Foreign Protestants Naturalization Act"
+        ],
+        "prediction": "The Foreign Protestants Act of 1685.",
+        "exact_match": 0,
+        "f1": 0.6666666666666665,
+        "substring_match": 0,
+        "perplexity": 10.6,
+        "gold_position": "middle",
+        "num_tokens": 1387,
+        "num_passages": 9
+      },
+      {
+        "question": "What is an annual two-day multicultural event held in Newcastle in late August?",
+        "gold_answers": [
+          "Newcastle Mela",
+          "Newcastle Mela",
+          "Newcastle Mela"
+        ],
+        "prediction": "Newcastle Mela.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 11.18,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 9
+      },
+      {
+        "question": "What is the earliest known movie featuring scenes filmed outdoors in Newcastle?",
+        "gold_answers": [
+          "On the Night of the Fire",
+          "On the Night of the Fire",
+          "On the Night of the Fire (1939),"
+        ],
+        "prediction": "The Cloud-Catcher (1930)",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.83,
+        "gold_position": "middle",
+        "num_tokens": 1539,
+        "num_passages": 8
+      },
+      {
+        "question": "When did the V&A acquired the Costiff collection?",
+        "gold_answers": [
+          "2002",
+          "2002",
+          "2002"
+        ],
+        "prediction": "The Costiff collection was acquired in 2004.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 14.28,
+        "gold_position": "middle",
+        "num_tokens": 1702,
+        "num_passages": 8
+      },
+      {
+        "question": "Who was Tesla prejudiced against?",
+        "gold_answers": [
+          "overweight people",
+          "overweight people",
+          "overweight people"
+        ],
+        "prediction": "Tesla could be prejudiced against overweight people.",
+        "exact_match": 0,
+        "f1": 0.4444444444444445,
+        "substring_match": 1,
+        "perplexity": 11.93,
+        "gold_position": "middle",
+        "num_tokens": 1776,
+        "num_passages": 8
+      },
+      {
+        "question": "Why are chloroplasts of interest in GMO crops?",
+        "gold_answers": [
+          "transgenes in these plastids cannot be disseminated by pollen",
+          "chloroplasts are not inherited from the male parent",
+          "transgenes in these plastids cannot be disseminated by pollen"
+        ],
+        "prediction": "Chloroplasts are responsible for photosynthesis, the process by which plants convert light energy into chemical energy. Chloroplasts are located in the stroma of plant cells, where they are surrounded by thylakoid memb",
+        "exact_match": 0,
+        "f1": 0.10810810810810811,
+        "substring_match": 0,
+        "perplexity": 11.7,
+        "gold_position": "beginning",
+        "num_tokens": 1707,
+        "num_passages": 7
+      },
+      {
+        "question": "What minimalist composer is also a university graduate?",
+        "gold_answers": [
+          "Philip Glass",
+          "Philip Glass",
+          "Philip Glass"
+        ],
+        "prediction": "Philip Glass",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.47,
+        "gold_position": "middle",
+        "num_tokens": 1763,
+        "num_passages": 8
+      },
+      {
+        "question": "What do chloroplasts do like mitochondria?",
+        "gold_answers": [
+          "generate ATP energy",
+          "use the potential energy stored in an H+",
+          "use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy"
+        ],
+        "prediction": "Chloroplasts use the potential energy stored in an H+ gradient to generate ATP through the process of photosynthesis.",
+        "exact_match": 0,
+        "f1": 0.689655172413793,
+        "substring_match": 1,
+        "perplexity": 8.38,
+        "gold_position": "end",
+        "num_tokens": 1626,
+        "num_passages": 7
+      },
+      {
+        "question": "The region spans starting at islands found in which body of water?",
+        "gold_answers": [
+          "Pacific Ocean",
+          "Pacific Ocean",
+          "Pacific Ocean"
+        ],
+        "prediction": "Pacific Ocean islands.",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.97,
+        "gold_position": "middle",
+        "num_tokens": 1615,
+        "num_passages": 7
+      },
+      {
+        "question": "Theories on imperialism use which country as a model?",
+        "gold_answers": [
+          "British",
+          "British",
+          "British",
+          "British"
+        ],
+        "prediction": "Imperialism was first introduced into English by the British in the 18th century, and it was used to describe the expansion of the British Empire. The term was later adopted by other European powers, including the French, the Dutch, and the",
+        "exact_match": 0,
+        "f1": 0.05882352941176471,
+        "substring_match": 1,
+        "perplexity": 10.62,
+        "gold_position": "middle",
+        "num_tokens": 1722,
+        "num_passages": 7
+      },
+      {
+        "question": "The term Huguenot was originally meant to confer?",
+        "gold_answers": [
+          "derision",
+          "derision",
+          "derision"
+        ],
+        "prediction": "A derogatory nickname for a Swiss-born Protestant in France.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 12.71,
+        "gold_position": "end",
+        "num_tokens": 1767,
+        "num_passages": 8
+      },
+      {
+        "question": "What type of group is The Islamic State?",
+        "gold_answers": [
+          "Wahhabi/Salafi jihadist extremist militant",
+          "Wahhabi/Salafi jihadist extremist militant group",
+          "extremist militant"
+        ],
+        "prediction": "A Wahhabi/Salafi jihadist group that is led by and mainly composed of Sunni Arabs from Iraq and Syria.",
+        "exact_match": 0,
+        "f1": 0.2727272727272727,
+        "substring_match": 0,
+        "perplexity": 11.24,
+        "gold_position": "middle",
+        "num_tokens": 1760,
+        "num_passages": 9
+      },
+      {
+        "question": "What are three examples of complexity classes associated with definitions established by probabilistic Turing machines?",
+        "gold_answers": [
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP"
+        ],
+        "prediction": "1. BPP, 2. ZPP, 3. RPP, 4. QMA, 5. ACBPP, 6. BQPP, 7. QMA, 8. IP,",
+        "exact_match": 0,
+        "f1": 0.2,
+        "substring_match": 0,
+        "perplexity": 11.83,
+        "gold_position": "beginning",
+        "num_tokens": 1788,
+        "num_passages": 9
+      },
+      {
+        "question": "When did President Uhuru Kenyatta sign a Security Law Amendment Bill?",
+        "gold_answers": [
+          "December 2014",
+          "December 2014",
+          "December 2014"
+        ],
+        "prediction": "President Uhuru Kenyatta signed a Security Law Amendment Bill on 19 December 2014.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 11.0,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 8
+      },
+      {
+        "question": "When did Martin Luther publish his translation of the New Testament?",
+        "gold_answers": [
+          "1522",
+          "1522",
+          "1522"
+        ],
+        "prediction": "Luther published his translation of the New Testament in 1522.",
+        "exact_match": 0,
+        "f1": 0.19999999999999998,
+        "substring_match": 1,
+        "perplexity": 11.96,
+        "gold_position": "middle",
+        "num_tokens": 1750,
+        "num_passages": 8
+      },
+      {
+        "question": "What number did early Greeks not regard as a true number?",
+        "gold_answers": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "prediction": "1",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.13,
+        "gold_position": "beginning",
+        "num_tokens": 1719,
+        "num_passages": 8
+      },
+      {
+        "question": "What did John Dalton think that all elements were in number present in compounds?",
+        "gold_answers": [
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic"
+        ],
+        "prediction": "All elements were monatomic in number present in compounds.",
+        "exact_match": 0,
+        "f1": 0.19999999999999998,
+        "substring_match": 1,
+        "perplexity": 8.9,
+        "gold_position": "middle",
+        "num_tokens": 1802,
+        "num_passages": 9
+      },
+      {
+        "question": "Who took command of French in spring of 1753?",
+        "gold_answers": [
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue"
+        ],
+        "prediction": "Paul Marin de la Malgue.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.2,
+        "gold_position": "end",
+        "num_tokens": 1741,
+        "num_passages": 9
+      },
+      {
+        "question": "What term is used to explain a change in the appearance of Doctor Who?",
+        "gold_answers": [
+          "regeneration",
+          "regeneration",
+          "renewal"
+        ],
+        "prediction": "Regeneration",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.57,
+        "gold_position": "beginning",
+        "num_tokens": 1770,
+        "num_passages": 10
+      },
+      {
+        "question": "What is consultant pharmacy mainly concerned with?",
+        "gold_answers": [
+          "medication regimen review",
+          "medication regimen review",
+          "medication regimen review"
+        ],
+        "prediction": "Consultant pharmacy is primarily concerned with medication regimen review and cognitive services.",
+        "exact_match": 0,
+        "f1": 0.4,
+        "substring_match": 1,
+        "perplexity": 11.88,
+        "gold_position": "end",
+        "num_tokens": 1724,
+        "num_passages": 10
+      },
+      {
+        "question": "Who created the photographic series titled Animal Locomotion?",
+        "gold_answers": [
+          "Eadweard Muybridge",
+          "Eadweard Muybridge's",
+          "Eadweard Muybridge"
+        ],
+        "prediction": "Eadweard Muybridge",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 11.83,
+        "gold_position": "middle",
+        "num_tokens": 1809,
+        "num_passages": 11
+      },
+      {
+        "question": "During what period did the Tower Theatre re-open?",
+        "gold_answers": [
+          "late 1970s",
+          "late 1970s",
+          "late 1970s"
+        ],
+        "prediction": "After decades of neglect and suburban flight, the Tower Theatre in Fresno, California, was reopened in 1978.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 11.31,
+        "gold_position": "middle",
+        "num_tokens": 1742,
+        "num_passages": 11
+      },
+      {
+        "question": "where is the Victoria and Albert Museum located?",
+        "gold_answers": [
+          "The V&A is located in the Brompton district of the Royal Borough of Kensington and Chelsea",
+          "London",
+          "London",
+          "in the Brompton district of the Royal Borough of Kensington and Chelsea"
+        ],
+        "prediction": "The Victoria and Albert Museum is located in London, England.",
+        "exact_match": 0,
+        "f1": 0.3636363636363637,
+        "substring_match": 1,
+        "perplexity": 10.16,
+        "gold_position": "beginning",
+        "num_tokens": 1710,
+        "num_passages": 11
+      },
+      {
+        "question": "What South African law recognized two types of schools?",
+        "gold_answers": [
+          "South African Schools Act",
+          "South African Schools Act",
+          "South African Schools Act"
+        ],
+        "prediction": "The private sector schools were established by the South African Schools Act of 1996.",
+        "exact_match": 0,
+        "f1": 0.5,
+        "substring_match": 1,
+        "perplexity": 10.1,
+        "gold_position": "beginning",
+        "num_tokens": 1687,
+        "num_passages": 11
+      },
+      {
+        "question": "Concrete bounding of computation time frequently produces complexity classes contingent upon what?",
+        "gold_answers": [
+          "chosen machine model",
+          "the chosen machine model",
+          "the chosen machine model"
+        ],
+        "prediction": "The choice of a concrete function f(n) for which the complexity class P is contingent upon the choice of a function g(n) for which the complexity class NP is contingent upon the choice of a function h(n",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.11,
+        "gold_position": "middle",
+        "num_tokens": 1739,
+        "num_passages": 11
+      },
+      {
+        "question": "What did Luther deny the rebels?",
+        "gold_answers": [
+          "backing for the uprising",
+          "backing",
+          "backing"
+        ],
+        "prediction": "Luther denied that the rebels had the right to rebel against the authority of the church.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.15,
+        "gold_position": "end",
+        "num_tokens": 1826,
+        "num_passages": 12
+      },
+      {
+        "question": "What did Baran develop during research at RAND ",
+        "gold_answers": [
+          "the concept of distributed adaptive message block switching",
+          "the concept of distributed adaptive message block switching",
+          "concept of distributed adaptive message block switching"
+        ],
+        "prediction": "Distributed adaptive message block switching",
+        "exact_match": 0,
+        "f1": 0.8333333333333333,
+        "substring_match": 0,
+        "perplexity": 10.51,
+        "gold_position": "middle",
+        "num_tokens": 1708,
+        "num_passages": 11
+      },
+      {
+        "question": "Which comedian did a parody where a Dalek appears?",
+        "gold_answers": [
+          "Spike Milligan",
+          "Spike Milligan",
+          "Spike Milligan"
+        ],
+        "prediction": "Jon Culshaw.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.09,
+        "gold_position": "middle",
+        "num_tokens": 1677,
+        "num_passages": 11
+      },
+      {
+        "question": "What was Tesla afraid someone was trying to do with his invention?",
+        "gold_answers": [
+          "steal the invention",
+          "steal",
+          "steal"
+        ],
+        "prediction": "The thieves or spies who had entered his laboratory and stolen his blueprints.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.84,
+        "gold_position": "middle",
+        "num_tokens": 1698,
+        "num_passages": 11
+      },
+      {
+        "question": "What usually takes reenergized electrons?",
+        "gold_answers": [
+          "NADP+",
+          "photosystem I",
+          "NADP+"
+        ],
+        "prediction": "NADP+",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 11.43,
+        "gold_position": "end",
+        "num_tokens": 1821,
+        "num_passages": 11
+      },
+      {
+        "question": "Who was Louis XIV's main rival?",
+        "gold_answers": [
+          "William III of Orange",
+          "Stadtholder William III of Orange",
+          "Stadtholder William III of Orange"
+        ],
+        "prediction": "The League of Augsburg was formed by Stadtholder William III of Orange, who emerged as the strongest opponent of king Louis XIV after the French attacked the Dutch Republic in 1672.",
+        "exact_match": 0,
+        "f1": 0.3125,
+        "substring_match": 1,
+        "perplexity": 12.18,
+        "gold_position": "end",
+        "num_tokens": 1679,
+        "num_passages": 10
+      },
+      {
+        "question": "What graphic designer designed the ABC logo in it's most known form?",
+        "gold_answers": [
+          "Paul Rand",
+          "Paul Rand",
+          "Paul Rand"
+        ],
+        "prediction": "Paul Rand",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 12.03,
+        "gold_position": "middle",
+        "num_tokens": 1714,
+        "num_passages": 10
+      }
+    ],
+    "h2o_0.2": [
+      {
+        "question": "What feature of the Shah's army enable the weary Mongol forces easy early victories?",
+        "gold_answers": [
+          "fragmentation",
+          "fragmentation",
+          "fragmentation"
+        ],
+        "prediction": "The Shah's army was split into small groups, each with a commander, and each group was led by a skilled commander. This allowed the weary Mongol forces to easily break through the enemy lines and capture the towns.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.92,
+        "gold_position": "middle",
+        "num_tokens": 1687,
+        "num_passages": 6
+      },
+      {
+        "question": "What generally does not allow citizens to sue other citizens?",
+        "gold_answers": [
+          "Directives",
+          "Directives",
+          "Directives"
+        ],
+        "prediction": "Directives do not have direct effect.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 10.79,
+        "gold_position": "end",
+        "num_tokens": 1770,
+        "num_passages": 7
+      },
+      {
+        "question": "By which year did full sized American cars shrink to be smaller?",
+        "gold_answers": [
+          "1979",
+          "1979",
+          "1979",
+          "1979",
+          "1979"
+        ],
+        "prediction": "1979",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.3,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 8
+      },
+      {
+        "question": "What is the Mongolian name of the first Mongolian laws codified in writing?",
+        "gold_answers": [
+          "Ikh Zasag",
+          "Ikh Zasag (",
+          "Ikh Zasag"
+        ],
+        "prediction": "Ikh Zasag (Great Administration)",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.76,
+        "gold_position": "end",
+        "num_tokens": 1762,
+        "num_passages": 8
+      },
+      {
+        "question": "What kind of membrane do primary chloroplasts have?",
+        "gold_answers": [
+          "double",
+          "double membrane",
+          "double membrane"
+        ],
+        "prediction": "They have additional membranes outside their original two membranes from their cyanobacterial ancestor.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.13,
+        "gold_position": "middle",
+        "num_tokens": 1690,
+        "num_passages": 9
+      },
+      {
+        "question": "What cultures were part of Kublai's administration?",
+        "gold_answers": [
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists",
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+          "the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists"
+        ],
+        "prediction": "The bureaucracy created by Kublai Khan reflected various cultures in the empire, including that of the Han Chinese, Khitans, Jurchens, Mongols, and Tibetans.",
+        "exact_match": 0,
+        "f1": 0.4285714285714285,
+        "substring_match": 0,
+        "perplexity": 10.24,
+        "gold_position": "middle",
+        "num_tokens": 1663,
+        "num_passages": 9
+      },
+      {
+        "question": "By what process can active immunity be generated in an artificial manner?",
+        "gold_answers": [
+          "vaccination",
+          "vaccination",
+          "vaccination"
+        ],
+        "prediction": "By vaccination.",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.72,
+        "gold_position": "beginning",
+        "num_tokens": 1600,
+        "num_passages": 10
+      },
+      {
+        "question": "By August 2010 how many public schools did Victoria have?",
+        "gold_answers": [
+          "1,548",
+          "1,548",
+          "1,548"
+        ],
+        "prediction": "1,548",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 6.78,
+        "gold_position": "end",
+        "num_tokens": 1727,
+        "num_passages": 10
+      },
+      {
+        "question": "What continent are the Canarian Islands off the coast of?",
+        "gold_answers": [
+          "Africa",
+          "Africa",
+          "Africa"
+        ],
+        "prediction": "The Canarian Islands are located off the coast of Central America.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.35,
+        "gold_position": "beginning",
+        "num_tokens": 1747,
+        "num_passages": 10
+      },
+      {
+        "question": "What experiences acceleration when external force is applied to a system?",
+        "gold_answers": [
+          "center of mass",
+          "center of mass",
+          "the center of mass",
+          "the center of mass",
+          "the center of mass"
+        ],
+        "prediction": "In a closed system, the center of mass of the system will accelerate with respect to the center of mass of the system. In a closed system, the center of mass is the point of maximum acceleration. In a closed system, the center of",
+        "exact_match": 0,
+        "f1": 0.1621621621621622,
+        "substring_match": 1,
+        "perplexity": 9.08,
+        "gold_position": "middle",
+        "num_tokens": 1789,
+        "num_passages": 10
+      },
+      {
+        "question": "What candy company did Edward John Noble own?",
+        "gold_answers": [
+          "Life Savers candy",
+          "Life Savers",
+          "Life Savers"
+        ],
+        "prediction": "Life Savers.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.69,
+        "gold_position": "middle",
+        "num_tokens": 1812,
+        "num_passages": 10
+      },
+      {
+        "question": "How common was the form of corporal punishment in the past?",
+        "gold_answers": [
+          "one of the most common",
+          "one of the most common",
+          "most common",
+          "most common"
+        ],
+        "prediction": "It was common in many Western countries, but banned in the United States following a Supreme Court decision in 1965.",
+        "exact_match": 0,
+        "f1": 0.09999999999999999,
+        "substring_match": 0,
+        "perplexity": 8.74,
+        "gold_position": "beginning",
+        "num_tokens": 1771,
+        "num_passages": 10
+      },
+      {
+        "question": "How are eggs and sperm released?",
+        "gold_answers": [
+          "via pores in the epidermis",
+          "pores in the epidermis",
+          "via pores in the epidermis"
+        ],
+        "prediction": "Fertilization is external in most species, but platyctenids use internal fertilization and keep the eggs in brood chambers until they hatch. Self-fertilization has occasionally been seen in species of the genus",
+        "exact_match": 0,
+        "f1": 0.0625,
+        "substring_match": 0,
+        "perplexity": 9.57,
+        "gold_position": "end",
+        "num_tokens": 1799,
+        "num_passages": 10
+      },
+      {
+        "question": "How many Doctor Who soundtracks have been released since 2005?",
+        "gold_answers": [
+          "Six",
+          "Six",
+          "Six"
+        ],
+        "prediction": "Six.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.44,
+        "gold_position": "middle",
+        "num_tokens": 1715,
+        "num_passages": 10
+      },
+      {
+        "question": "Who decides who gets to speak in the chamber debates?",
+        "gold_answers": [
+          "The Presiding Officer",
+          "Presiding Officer",
+          "The Presiding Officer"
+        ],
+        "prediction": "The Presiding Officer (or Deputy Presiding Officer) decides who speaks in chamber debates.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 9.35,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 10
+      },
+      {
+        "question": "What would Mongol armies divert in order to cut off the resources of cities they were attacking?",
+        "gold_answers": [
+          "rivers",
+          "rivers",
+          "rivers"
+        ],
+        "prediction": "They would divert the rivers that flowed through the cities to divert the water supply.",
+        "exact_match": 0,
+        "f1": 0.15384615384615385,
+        "substring_match": 1,
+        "perplexity": 10.69,
+        "gold_position": "beginning",
+        "num_tokens": 1667,
+        "num_passages": 10
+      },
+      {
+        "question": "What series is the longest running program in ABC history?",
+        "gold_answers": [
+          "General Hospital",
+          "General Hospital",
+          "General Hospital"
+        ],
+        "prediction": "The longest running program in ABC history is Good Morning America, which has been on the air since 1975.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.74,
+        "gold_position": "middle",
+        "num_tokens": 1759,
+        "num_passages": 10
+      },
+      {
+        "question": "Which Mongolian word meaning wide-spreading may have contributed to the appellation Genghis?",
+        "gold_answers": [
+          "tenggis",
+          "tenggis",
+          "tenggis"
+        ],
+        "prediction": "Zh\u00e8ng (Chinese: \u6b63) meaning \"right\" or \"just\" in medieval Mongolian, which in medieval Chinese was written as \"Jenggis\" and in modern Chinese as \"Genghis\".",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.29,
+        "gold_position": "middle",
+        "num_tokens": 1585,
+        "num_passages": 10
+      },
+      {
+        "question": "What English law made that country more welcoming to Huguenots?",
+        "gold_answers": [
+          "Foreign Protestants Naturalization Act",
+          "Foreign Protestants Naturalization Act,",
+          "Foreign Protestants Naturalization Act"
+        ],
+        "prediction": "The Foreign Protestants Act of 1685.",
+        "exact_match": 0,
+        "f1": 0.6666666666666665,
+        "substring_match": 0,
+        "perplexity": 9.99,
+        "gold_position": "middle",
+        "num_tokens": 1387,
+        "num_passages": 9
+      },
+      {
+        "question": "What is an annual two-day multicultural event held in Newcastle in late August?",
+        "gold_answers": [
+          "Newcastle Mela",
+          "Newcastle Mela",
+          "Newcastle Mela"
+        ],
+        "prediction": "Newcastle Mela.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.3,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 9
+      },
+      {
+        "question": "What is the earliest known movie featuring scenes filmed outdoors in Newcastle?",
+        "gold_answers": [
+          "On the Night of the Fire",
+          "On the Night of the Fire",
+          "On the Night of the Fire (1939),"
+        ],
+        "prediction": "The Clouded Yellow (1952)",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.37,
+        "gold_position": "middle",
+        "num_tokens": 1539,
+        "num_passages": 8
+      },
+      {
+        "question": "When did the V&A acquired the Costiff collection?",
+        "gold_answers": [
+          "2002",
+          "2002",
+          "2002"
+        ],
+        "prediction": "The Costiff collection was acquired in 2002.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 13.2,
+        "gold_position": "middle",
+        "num_tokens": 1702,
+        "num_passages": 8
+      },
+      {
+        "question": "Who was Tesla prejudiced against?",
+        "gold_answers": [
+          "overweight people",
+          "overweight people",
+          "overweight people"
+        ],
+        "prediction": "Tesla could be harsh at times and openly expressed disgust at overweight people.",
+        "exact_match": 0,
+        "f1": 0.2666666666666667,
+        "substring_match": 1,
+        "perplexity": 11.23,
+        "gold_position": "middle",
+        "num_tokens": 1776,
+        "num_passages": 8
+      },
+      {
+        "question": "Why are chloroplasts of interest in GMO crops?",
+        "gold_answers": [
+          "transgenes in these plastids cannot be disseminated by pollen",
+          "chloroplasts are not inherited from the male parent",
+          "transgenes in these plastids cannot be disseminated by pollen"
+        ],
+        "prediction": "Chloroplasts are responsible for photosynthesis, the process by which plants convert light energy into chemical energy. Chloroplasts are located in the stroma of plant cells, where they are surrounded by thylakoid memb",
+        "exact_match": 0,
+        "f1": 0.10810810810810811,
+        "substring_match": 0,
+        "perplexity": 11.19,
+        "gold_position": "beginning",
+        "num_tokens": 1707,
+        "num_passages": 7
+      },
+      {
+        "question": "What minimalist composer is also a university graduate?",
+        "gold_answers": [
+          "Philip Glass",
+          "Philip Glass",
+          "Philip Glass"
+        ],
+        "prediction": "Philip Glass",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.94,
+        "gold_position": "middle",
+        "num_tokens": 1763,
+        "num_passages": 8
+      },
+      {
+        "question": "What do chloroplasts do like mitochondria?",
+        "gold_answers": [
+          "generate ATP energy",
+          "use the potential energy stored in an H+",
+          "use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy"
+        ],
+        "prediction": "Chloroplasts use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy. They capture light energy to energize electrons taken from water, and release them down an electron transport chain. The molecules between",
+        "exact_match": 0,
+        "f1": 0.5833333333333334,
+        "substring_match": 1,
+        "perplexity": 7.71,
+        "gold_position": "end",
+        "num_tokens": 1626,
+        "num_passages": 7
+      },
+      {
+        "question": "The region spans starting at islands found in which body of water?",
+        "gold_answers": [
+          "Pacific Ocean",
+          "Pacific Ocean",
+          "Pacific Ocean"
+        ],
+        "prediction": "Pacific Ocean islands",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.59,
+        "gold_position": "middle",
+        "num_tokens": 1615,
+        "num_passages": 7
+      },
+      {
+        "question": "Theories on imperialism use which country as a model?",
+        "gold_answers": [
+          "British",
+          "British",
+          "British",
+          "British"
+        ],
+        "prediction": "Imperialism was first introduced into English in 1799 by opponents of \"Imperialism\" such as Joseph Chamberlain.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.9,
+        "gold_position": "middle",
+        "num_tokens": 1722,
+        "num_passages": 7
+      },
+      {
+        "question": "The term Huguenot was originally meant to confer?",
+        "gold_answers": [
+          "derision",
+          "derision",
+          "derision"
+        ],
+        "prediction": "A derogatory nickname for Swiss republicanism.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 11.94,
+        "gold_position": "end",
+        "num_tokens": 1767,
+        "num_passages": 8
+      },
+      {
+        "question": "What type of group is The Islamic State?",
+        "gold_answers": [
+          "Wahhabi/Salafi jihadist extremist militant",
+          "Wahhabi/Salafi jihadist extremist militant group",
+          "extremist militant"
+        ],
+        "prediction": "A Wahhabi/Salafi jihadist extremist group that is led by and mainly composed of Sunni Arabs from Iraq and Syria.",
+        "exact_match": 0,
+        "f1": 0.3478260869565218,
+        "substring_match": 0,
+        "perplexity": 10.55,
+        "gold_position": "middle",
+        "num_tokens": 1760,
+        "num_passages": 9
+      },
+      {
+        "question": "What are three examples of complexity classes associated with definitions established by probabilistic Turing machines?",
+        "gold_answers": [
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP"
+        ],
+        "prediction": "1. BPP, 2. ZPP, 3. RP",
+        "exact_match": 0,
+        "f1": 0.6,
+        "substring_match": 0,
+        "perplexity": 11.1,
+        "gold_position": "beginning",
+        "num_tokens": 1788,
+        "num_passages": 9
+      },
+      {
+        "question": "When did President Uhuru Kenyatta sign a Security Law Amendment Bill?",
+        "gold_answers": [
+          "December 2014",
+          "December 2014",
+          "December 2014"
+        ],
+        "prediction": "President Uhuru Kenyatta signed a Security Law Amendment Bill on 19 December 2014.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 10.14,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 8
+      },
+      {
+        "question": "When did Martin Luther publish his translation of the New Testament?",
+        "gold_answers": [
+          "1522",
+          "1522",
+          "1522"
+        ],
+        "prediction": "Luther published his translation of the New Testament in 1522.",
+        "exact_match": 0,
+        "f1": 0.19999999999999998,
+        "substring_match": 1,
+        "perplexity": 11.13,
+        "gold_position": "middle",
+        "num_tokens": 1750,
+        "num_passages": 8
+      },
+      {
+        "question": "What number did early Greeks not regard as a true number?",
+        "gold_answers": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "prediction": "1",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 7.82,
+        "gold_position": "beginning",
+        "num_tokens": 1719,
+        "num_passages": 8
+      },
+      {
+        "question": "What did John Dalton think that all elements were in number present in compounds?",
+        "gold_answers": [
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic"
+        ],
+        "prediction": "All elements were monatomic in number present in compounds.",
+        "exact_match": 0,
+        "f1": 0.19999999999999998,
+        "substring_match": 1,
+        "perplexity": 8.5,
+        "gold_position": "middle",
+        "num_tokens": 1802,
+        "num_passages": 9
+      },
+      {
+        "question": "Who took command of French in spring of 1753?",
+        "gold_answers": [
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue"
+        ],
+        "prediction": "Paul Marin de la Malgue.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.53,
+        "gold_position": "end",
+        "num_tokens": 1741,
+        "num_passages": 9
+      },
+      {
+        "question": "What term is used to explain a change in the appearance of Doctor Who?",
+        "gold_answers": [
+          "regeneration",
+          "regeneration",
+          "renewal"
+        ],
+        "prediction": "Regeneration",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.71,
+        "gold_position": "beginning",
+        "num_tokens": 1770,
+        "num_passages": 10
+      },
+      {
+        "question": "What is consultant pharmacy mainly concerned with?",
+        "gold_answers": [
+          "medication regimen review",
+          "medication regimen review",
+          "medication regimen review"
+        ],
+        "prediction": "Consultant pharmacy mainly focuses on medication regimen review (i.e. \"cognitive services\") rather than actual dispensing of drugs.",
+        "exact_match": 0,
+        "f1": 0.3,
+        "substring_match": 1,
+        "perplexity": 10.71,
+        "gold_position": "end",
+        "num_tokens": 1724,
+        "num_passages": 10
+      },
+      {
+        "question": "Who created the photographic series titled Animal Locomotion?",
+        "gold_answers": [
+          "Eadweard Muybridge",
+          "Eadweard Muybridge's",
+          "Eadweard Muybridge"
+        ],
+        "prediction": "Eadweard Muybridge",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.75,
+        "gold_position": "middle",
+        "num_tokens": 1809,
+        "num_passages": 11
+      },
+      {
+        "question": "During what period did the Tower Theatre re-open?",
+        "gold_answers": [
+          "late 1970s",
+          "late 1970s",
+          "late 1970s"
+        ],
+        "prediction": "After decades of neglect and suburban flight, the Tower Theatre in Fresno, California, was reopened in 1978.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.32,
+        "gold_position": "middle",
+        "num_tokens": 1742,
+        "num_passages": 11
+      },
+      {
+        "question": "where is the Victoria and Albert Museum located?",
+        "gold_answers": [
+          "The V&A is located in the Brompton district of the Royal Borough of Kensington and Chelsea",
+          "London",
+          "London",
+          "in the Brompton district of the Royal Borough of Kensington and Chelsea"
+        ],
+        "prediction": "The Victoria and Albert Museum is located in London, England.",
+        "exact_match": 0,
+        "f1": 0.3636363636363637,
+        "substring_match": 1,
+        "perplexity": 9.2,
+        "gold_position": "beginning",
+        "num_tokens": 1710,
+        "num_passages": 11
+      },
+      {
+        "question": "What South African law recognized two types of schools?",
+        "gold_answers": [
+          "South African Schools Act",
+          "South African Schools Act",
+          "South African Schools Act"
+        ],
+        "prediction": "The private sector has grown ever since. After the abolition of apartheid, the laws governing private schools have grown ever more complex. The South African Schools Act of 1996 recognised two categories of schools: \"public\"",
+        "exact_match": 0,
+        "f1": 0.2285714285714286,
+        "substring_match": 1,
+        "perplexity": 9.19,
+        "gold_position": "beginning",
+        "num_tokens": 1687,
+        "num_passages": 11
+      },
+      {
+        "question": "Concrete bounding of computation time frequently produces complexity classes contingent upon what?",
+        "gold_answers": [
+          "chosen machine model",
+          "the chosen machine model",
+          "the chosen machine model"
+        ],
+        "prediction": "The choice of machine model.",
+        "exact_match": 0,
+        "f1": 0.5714285714285715,
+        "substring_match": 0,
+        "perplexity": 9.43,
+        "gold_position": "middle",
+        "num_tokens": 1739,
+        "num_passages": 11
+      },
+      {
+        "question": "What did Luther deny the rebels?",
+        "gold_answers": [
+          "backing for the uprising",
+          "backing",
+          "backing"
+        ],
+        "prediction": "Luther denied that the rebels had the right to rebel against the authority of the church.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.32,
+        "gold_position": "end",
+        "num_tokens": 1826,
+        "num_passages": 12
+      },
+      {
+        "question": "What did Baran develop during research at RAND ",
+        "gold_answers": [
+          "the concept of distributed adaptive message block switching",
+          "the concept of distributed adaptive message block switching",
+          "concept of distributed adaptive message block switching"
+        ],
+        "prediction": "Distributed adaptive message block switching",
+        "exact_match": 0,
+        "f1": 0.8333333333333333,
+        "substring_match": 0,
+        "perplexity": 9.64,
+        "gold_position": "middle",
+        "num_tokens": 1708,
+        "num_passages": 11
+      },
+      {
+        "question": "Which comedian did a parody where a Dalek appears?",
+        "gold_answers": [
+          "Spike Milligan",
+          "Spike Milligan",
+          "Spike Milligan"
+        ],
+        "prediction": "Jon Culshaw.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.28,
+        "gold_position": "middle",
+        "num_tokens": 1677,
+        "num_passages": 11
+      },
+      {
+        "question": "What was Tesla afraid someone was trying to do with his invention?",
+        "gold_answers": [
+          "steal the invention",
+          "steal",
+          "steal"
+        ],
+        "prediction": "The thieves, or spies, were trying to steal the invention.",
+        "exact_match": 0,
+        "f1": 0.4,
+        "substring_match": 1,
+        "perplexity": 9.86,
+        "gold_position": "middle",
+        "num_tokens": 1698,
+        "num_passages": 11
+      },
+      {
+        "question": "What usually takes reenergized electrons?",
+        "gold_answers": [
+          "NADP+",
+          "photosystem I",
+          "NADP+"
+        ],
+        "prediction": "NADP+",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.89,
+        "gold_position": "end",
+        "num_tokens": 1821,
+        "num_passages": 11
+      },
+      {
+        "question": "Who was Louis XIV's main rival?",
+        "gold_answers": [
+          "William III of Orange",
+          "Stadtholder William III of Orange",
+          "Stadtholder William III of Orange"
+        ],
+        "prediction": "The League of Augsburg was formed by Stadtholder William III of Orange, who emerged as the strongest opponent of king Louis XIV after the French attacked the Dutch Republic in 1672.",
+        "exact_match": 0,
+        "f1": 0.3125,
+        "substring_match": 1,
+        "perplexity": 11.51,
+        "gold_position": "end",
+        "num_tokens": 1679,
+        "num_passages": 10
+      },
+      {
+        "question": "What graphic designer designed the ABC logo in it's most known form?",
+        "gold_answers": [
+          "Paul Rand",
+          "Paul Rand",
+          "Paul Rand"
+        ],
+        "prediction": "Paul Rand",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 11.25,
+        "gold_position": "middle",
+        "num_tokens": 1714,
+        "num_passages": 10
+      }
+    ],
+    "h2o_0.3": [
+      {
+        "question": "What feature of the Shah's army enable the weary Mongol forces easy early victories?",
+        "gold_answers": [
+          "fragmentation",
+          "fragmentation",
+          "fragmentation"
+        ],
+        "prediction": "The Shah's army was split into small groups, each with a commander, and each group was led by a skilled commander. This allowed the weary Mongol forces to easily defeat small fractions of the Shah's army.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.54,
+        "gold_position": "middle",
+        "num_tokens": 1687,
+        "num_passages": 6
+      },
+      {
+        "question": "What generally does not allow citizens to sue other citizens?",
+        "gold_answers": [
+          "Directives",
+          "Directives",
+          "Directives"
+        ],
+        "prediction": "Directives do not have direct effect.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 10.62,
+        "gold_position": "end",
+        "num_tokens": 1770,
+        "num_passages": 7
+      },
+      {
+        "question": "By which year did full sized American cars shrink to be smaller?",
+        "gold_answers": [
+          "1979",
+          "1979",
+          "1979",
+          "1979",
+          "1979"
+        ],
+        "prediction": "1979",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.13,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 8
+      },
+      {
+        "question": "What is the Mongolian name of the first Mongolian laws codified in writing?",
+        "gold_answers": [
+          "Ikh Zasag",
+          "Ikh Zasag (",
+          "Ikh Zasag"
+        ],
+        "prediction": "Ikh Zasag (Great Administration)",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.77,
+        "gold_position": "end",
+        "num_tokens": 1762,
+        "num_passages": 8
+      },
+      {
+        "question": "What kind of membrane do primary chloroplasts have?",
+        "gold_answers": [
+          "double",
+          "double membrane",
+          "double membrane"
+        ],
+        "prediction": "They have additional membranes outside the original two membranes from their cyanobacterial ancestor.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.84,
+        "gold_position": "middle",
+        "num_tokens": 1690,
+        "num_passages": 9
+      },
+      {
+        "question": "What cultures were part of Kublai's administration?",
+        "gold_answers": [
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists",
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+          "the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists"
+        ],
+        "prediction": "The bureaucracy created by Kublai Khan reflected various cultures in the empire, including that of the Han Chinese, Khitans, Jurchens, Mongols, and Tibetans.",
+        "exact_match": 0,
+        "f1": 0.4285714285714285,
+        "substring_match": 0,
+        "perplexity": 9.89,
+        "gold_position": "middle",
+        "num_tokens": 1663,
+        "num_passages": 9
+      },
+      {
+        "question": "By what process can active immunity be generated in an artificial manner?",
+        "gold_answers": [
+          "vaccination",
+          "vaccination",
+          "vaccination"
+        ],
+        "prediction": "By vaccination.",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.47,
+        "gold_position": "beginning",
+        "num_tokens": 1600,
+        "num_passages": 10
+      },
+      {
+        "question": "By August 2010 how many public schools did Victoria have?",
+        "gold_answers": [
+          "1,548",
+          "1,548",
+          "1,548"
+        ],
+        "prediction": "1,548",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 6.67,
+        "gold_position": "end",
+        "num_tokens": 1727,
+        "num_passages": 10
+      },
+      {
+        "question": "What continent are the Canarian Islands off the coast of?",
+        "gold_answers": [
+          "Africa",
+          "Africa",
+          "Africa"
+        ],
+        "prediction": "The Canarian Islands are located off the coast of Africa.",
+        "exact_match": 0,
+        "f1": 0.2222222222222222,
+        "substring_match": 1,
+        "perplexity": 8.25,
+        "gold_position": "beginning",
+        "num_tokens": 1747,
+        "num_passages": 10
+      },
+      {
+        "question": "What experiences acceleration when external force is applied to a system?",
+        "gold_answers": [
+          "center of mass",
+          "center of mass",
+          "the center of mass",
+          "the center of mass",
+          "the center of mass"
+        ],
+        "prediction": "In a closed system, the action of an external force will cause the center of mass to accelerate.",
+        "exact_match": 0,
+        "f1": 0.35294117647058826,
+        "substring_match": 1,
+        "perplexity": 8.85,
+        "gold_position": "middle",
+        "num_tokens": 1789,
+        "num_passages": 10
+      },
+      {
+        "question": "What candy company did Edward John Noble own?",
+        "gold_answers": [
+          "Life Savers candy",
+          "Life Savers",
+          "Life Savers"
+        ],
+        "prediction": "Life Savers.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.54,
+        "gold_position": "middle",
+        "num_tokens": 1812,
+        "num_passages": 10
+      },
+      {
+        "question": "How common was the form of corporal punishment in the past?",
+        "gold_answers": [
+          "one of the most common",
+          "one of the most common",
+          "most common",
+          "most common"
+        ],
+        "prediction": "It was common in many Western countries, but banned in the United States following a US Supreme Court decision in 1977.",
+        "exact_match": 0,
+        "f1": 0.09523809523809525,
+        "substring_match": 0,
+        "perplexity": 8.53,
+        "gold_position": "beginning",
+        "num_tokens": 1771,
+        "num_passages": 10
+      },
+      {
+        "question": "How are eggs and sperm released?",
+        "gold_answers": [
+          "via pores in the epidermis",
+          "pores in the epidermis",
+          "via pores in the epidermis"
+        ],
+        "prediction": "Fertilization is external in most species, but platyctenids use internal fertilization and keep the eggs in brood chambers until they hatch. Self-fertilization has occasionally been seen in species of the genus",
+        "exact_match": 0,
+        "f1": 0.0625,
+        "substring_match": 0,
+        "perplexity": 9.45,
+        "gold_position": "end",
+        "num_tokens": 1799,
+        "num_passages": 10
+      },
+      {
+        "question": "How many Doctor Who soundtracks have been released since 2005?",
+        "gold_answers": [
+          "Six",
+          "Six",
+          "Six"
+        ],
+        "prediction": "Six.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.29,
+        "gold_position": "middle",
+        "num_tokens": 1715,
+        "num_passages": 10
+      },
+      {
+        "question": "Who decides who gets to speak in the chamber debates?",
+        "gold_answers": [
+          "The Presiding Officer",
+          "Presiding Officer",
+          "The Presiding Officer"
+        ],
+        "prediction": "The Presiding Officer (or Deputy Presiding Officer) decides who gets to speak in chamber debates.",
+        "exact_match": 0,
+        "f1": 0.25,
+        "substring_match": 1,
+        "perplexity": 9.16,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 10
+      },
+      {
+        "question": "What would Mongol armies divert in order to cut off the resources of cities they were attacking?",
+        "gold_answers": [
+          "rivers",
+          "rivers",
+          "rivers"
+        ],
+        "prediction": "They would divert certain rivers, taking enemy prisoners and driving them in the direction of the attack.",
+        "exact_match": 0,
+        "f1": 0.125,
+        "substring_match": 1,
+        "perplexity": 10.42,
+        "gold_position": "beginning",
+        "num_tokens": 1667,
+        "num_passages": 10
+      },
+      {
+        "question": "What series is the longest running program in ABC history?",
+        "gold_answers": [
+          "General Hospital",
+          "General Hospital",
+          "General Hospital"
+        ],
+        "prediction": "The longest running program in ABC history is Good Morning America, which has been on the air since 1975.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.47,
+        "gold_position": "middle",
+        "num_tokens": 1759,
+        "num_passages": 10
+      },
+      {
+        "question": "Which Mongolian word meaning wide-spreading may have contributed to the appellation Genghis?",
+        "gold_answers": [
+          "tenggis",
+          "tenggis",
+          "tenggis"
+        ],
+        "prediction": "Zh\u00e8ng (Chinese: \u6b63) meaning \"right\" or \"just\"",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.77,
+        "gold_position": "middle",
+        "num_tokens": 1585,
+        "num_passages": 10
+      },
+      {
+        "question": "What English law made that country more welcoming to Huguenots?",
+        "gold_answers": [
+          "Foreign Protestants Naturalization Act",
+          "Foreign Protestants Naturalization Act,",
+          "Foreign Protestants Naturalization Act"
+        ],
+        "prediction": "The Foreign Protestants Naturalization Act of 1701.",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.62,
+        "gold_position": "middle",
+        "num_tokens": 1387,
+        "num_passages": 9
+      },
+      {
+        "question": "What is an annual two-day multicultural event held in Newcastle in late August?",
+        "gold_answers": [
+          "Newcastle Mela",
+          "Newcastle Mela",
+          "Newcastle Mela"
+        ],
+        "prediction": "Newcastle Mela.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.01,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 9
+      },
+      {
+        "question": "What is the earliest known movie featuring scenes filmed outdoors in Newcastle?",
+        "gold_answers": [
+          "On the Night of the Fire",
+          "On the Night of the Fire",
+          "On the Night of the Fire (1939),"
+        ],
+        "prediction": "The Clouded Yellow (1952)",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.13,
+        "gold_position": "middle",
+        "num_tokens": 1539,
+        "num_passages": 8
+      },
+      {
+        "question": "When did the V&A acquired the Costiff collection?",
+        "gold_answers": [
+          "2002",
+          "2002",
+          "2002"
+        ],
+        "prediction": "The Costiff collection was acquired in 2002.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 12.61,
+        "gold_position": "middle",
+        "num_tokens": 1702,
+        "num_passages": 8
+      },
+      {
+        "question": "Who was Tesla prejudiced against?",
+        "gold_answers": [
+          "overweight people",
+          "overweight people",
+          "overweight people"
+        ],
+        "prediction": "Tesla could be harsh at times and openly expressed disgust for overweight people.",
+        "exact_match": 0,
+        "f1": 0.2666666666666667,
+        "substring_match": 1,
+        "perplexity": 10.64,
+        "gold_position": "middle",
+        "num_tokens": 1776,
+        "num_passages": 8
+      },
+      {
+        "question": "Why are chloroplasts of interest in GMO crops?",
+        "gold_answers": [
+          "transgenes in these plastids cannot be disseminated by pollen",
+          "chloroplasts are not inherited from the male parent",
+          "transgenes in these plastids cannot be disseminated by pollen"
+        ],
+        "prediction": "Chloroplasts are responsible for photosynthesis in plants, and are essential for the production of food and oxygen. They are also important for the development of genetically modified crops, as they can be disseminated to",
+        "exact_match": 0,
+        "f1": 0.14634146341463417,
+        "substring_match": 0,
+        "perplexity": 10.54,
+        "gold_position": "beginning",
+        "num_tokens": 1707,
+        "num_passages": 7
+      },
+      {
+        "question": "What minimalist composer is also a university graduate?",
+        "gold_answers": [
+          "Philip Glass",
+          "Philip Glass",
+          "Philip Glass"
+        ],
+        "prediction": "Philip Glass",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.63,
+        "gold_position": "middle",
+        "num_tokens": 1763,
+        "num_passages": 8
+      },
+      {
+        "question": "What do chloroplasts do like mitochondria?",
+        "gold_answers": [
+          "generate ATP energy",
+          "use the potential energy stored in an H+",
+          "use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy"
+        ],
+        "prediction": "Chloroplasts use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy. They capture light energy to energize electrons taken from water, and release them down an electron transport chain. The molecules between",
+        "exact_match": 0,
+        "f1": 0.5833333333333334,
+        "substring_match": 1,
+        "perplexity": 7.47,
+        "gold_position": "end",
+        "num_tokens": 1626,
+        "num_passages": 7
+      },
+      {
+        "question": "The region spans starting at islands found in which body of water?",
+        "gold_answers": [
+          "Pacific Ocean",
+          "Pacific Ocean",
+          "Pacific Ocean"
+        ],
+        "prediction": "Pacific Ocean islands",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.33,
+        "gold_position": "middle",
+        "num_tokens": 1615,
+        "num_passages": 7
+      },
+      {
+        "question": "Theories on imperialism use which country as a model?",
+        "gold_answers": [
+          "British",
+          "British",
+          "British",
+          "British"
+        ],
+        "prediction": "Imperialism was first introduced into English in its present sense in the late 1870s by opponents of the allegedly aggressive and ostentatious imperial policies of British Prime Minister Benjamin Disraeli.",
+        "exact_match": 0,
+        "f1": 0.0689655172413793,
+        "substring_match": 1,
+        "perplexity": 9.6,
+        "gold_position": "middle",
+        "num_tokens": 1722,
+        "num_passages": 7
+      },
+      {
+        "question": "The term Huguenot was originally meant to confer?",
+        "gold_answers": [
+          "derision",
+          "derision",
+          "derision"
+        ],
+        "prediction": "A derogatory nickname for Swiss republicanism.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 11.01,
+        "gold_position": "end",
+        "num_tokens": 1767,
+        "num_passages": 8
+      },
+      {
+        "question": "What type of group is The Islamic State?",
+        "gold_answers": [
+          "Wahhabi/Salafi jihadist extremist militant",
+          "Wahhabi/Salafi jihadist extremist militant group",
+          "extremist militant"
+        ],
+        "prediction": "A Wahhabi/Salafi jihadist extremist militant group that is led by and mainly composed of Sunni Arabs from Iraq and Syria.",
+        "exact_match": 0,
+        "f1": 0.4166666666666667,
+        "substring_match": 1,
+        "perplexity": 10.23,
+        "gold_position": "middle",
+        "num_tokens": 1760,
+        "num_passages": 9
+      },
+      {
+        "question": "What are three examples of complexity classes associated with definitions established by probabilistic Turing machines?",
+        "gold_answers": [
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP"
+        ],
+        "prediction": "1. BPP, 2. ZPP, and 3. RP.",
+        "exact_match": 0,
+        "f1": 0.7272727272727273,
+        "substring_match": 0,
+        "perplexity": 10.9,
+        "gold_position": "beginning",
+        "num_tokens": 1788,
+        "num_passages": 9
+      },
+      {
+        "question": "When did President Uhuru Kenyatta sign a Security Law Amendment Bill?",
+        "gold_answers": [
+          "December 2014",
+          "December 2014",
+          "December 2014"
+        ],
+        "prediction": "President Uhuru Kenyatta signed a Security Law Amendment Bill on 19 December 2014.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 9.87,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 8
+      },
+      {
+        "question": "When did Martin Luther publish his translation of the New Testament?",
+        "gold_answers": [
+          "1522",
+          "1522",
+          "1522"
+        ],
+        "prediction": "Luther published his translation of the New Testament in 1522.",
+        "exact_match": 0,
+        "f1": 0.19999999999999998,
+        "substring_match": 1,
+        "perplexity": 10.61,
+        "gold_position": "middle",
+        "num_tokens": 1750,
+        "num_passages": 8
+      },
+      {
+        "question": "What number did early Greeks not regard as a true number?",
+        "gold_answers": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "prediction": "1",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 7.72,
+        "gold_position": "beginning",
+        "num_tokens": 1719,
+        "num_passages": 8
+      },
+      {
+        "question": "What did John Dalton think that all elements were in number present in compounds?",
+        "gold_answers": [
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic"
+        ],
+        "prediction": "All elements were monatomic and had the simplest atomic ratios with respect to one another.",
+        "exact_match": 0,
+        "f1": 0.13333333333333333,
+        "substring_match": 1,
+        "perplexity": 8.4,
+        "gold_position": "middle",
+        "num_tokens": 1802,
+        "num_passages": 9
+      },
+      {
+        "question": "Who took command of French in spring of 1753?",
+        "gold_answers": [
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue"
+        ],
+        "prediction": "Paul Marin de la Malgue.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.4,
+        "gold_position": "end",
+        "num_tokens": 1741,
+        "num_passages": 9
+      },
+      {
+        "question": "What term is used to explain a change in the appearance of Doctor Who?",
+        "gold_answers": [
+          "regeneration",
+          "regeneration",
+          "renewal"
+        ],
+        "prediction": "Regeneration",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.48,
+        "gold_position": "beginning",
+        "num_tokens": 1770,
+        "num_passages": 10
+      },
+      {
+        "question": "What is consultant pharmacy mainly concerned with?",
+        "gold_answers": [
+          "medication regimen review",
+          "medication regimen review",
+          "medication regimen review"
+        ],
+        "prediction": "Consultant pharmacy mainly focuses on medication regimen review (i.e. \"cognitive services\") rather than actual dispensing of drugs.",
+        "exact_match": 0,
+        "f1": 0.3,
+        "substring_match": 1,
+        "perplexity": 10.34,
+        "gold_position": "end",
+        "num_tokens": 1724,
+        "num_passages": 10
+      },
+      {
+        "question": "Who created the photographic series titled Animal Locomotion?",
+        "gold_answers": [
+          "Eadweard Muybridge",
+          "Eadweard Muybridge's",
+          "Eadweard Muybridge"
+        ],
+        "prediction": "Eadweard Muybridge",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.22,
+        "gold_position": "middle",
+        "num_tokens": 1809,
+        "num_passages": 11
+      },
+      {
+        "question": "During what period did the Tower Theatre re-open?",
+        "gold_answers": [
+          "late 1970s",
+          "late 1970s",
+          "late 1970s"
+        ],
+        "prediction": "After decades of neglect and suburban flight, the Tower Theatre in Fresno, California, was reopened in 1978.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.11,
+        "gold_position": "middle",
+        "num_tokens": 1742,
+        "num_passages": 11
+      },
+      {
+        "question": "where is the Victoria and Albert Museum located?",
+        "gold_answers": [
+          "The V&A is located in the Brompton district of the Royal Borough of Kensington and Chelsea",
+          "London",
+          "London",
+          "in the Brompton district of the Royal Borough of Kensington and Chelsea"
+        ],
+        "prediction": "The Victoria and Albert Museum is located in the Brompton district of the Royal Borough of Kensington and Chelsea, in the London Borough of Wandsworth.",
+        "exact_match": 0,
+        "f1": 0.7058823529411765,
+        "substring_match": 1,
+        "perplexity": 9.01,
+        "gold_position": "beginning",
+        "num_tokens": 1710,
+        "num_passages": 11
+      },
+      {
+        "question": "What South African law recognized two types of schools?",
+        "gold_answers": [
+          "South African Schools Act",
+          "South African Schools Act",
+          "South African Schools Act"
+        ],
+        "prediction": "The private sector has grown ever since. After the abolition of apartheid, the laws governing private education in South Africa changed significantly. After the abolition of apartheid, the laws governing private education in South Africa changed significantly. After the",
+        "exact_match": 0,
+        "f1": 0.054054054054054064,
+        "substring_match": 0,
+        "perplexity": 8.92,
+        "gold_position": "beginning",
+        "num_tokens": 1687,
+        "num_passages": 11
+      },
+      {
+        "question": "Concrete bounding of computation time frequently produces complexity classes contingent upon what?",
+        "gold_answers": [
+          "chosen machine model",
+          "the chosen machine model",
+          "the chosen machine model"
+        ],
+        "prediction": "The choice of machine model.",
+        "exact_match": 0,
+        "f1": 0.5714285714285715,
+        "substring_match": 0,
+        "perplexity": 9.27,
+        "gold_position": "middle",
+        "num_tokens": 1739,
+        "num_passages": 11
+      },
+      {
+        "question": "What did Luther deny the rebels?",
+        "gold_answers": [
+          "backing for the uprising",
+          "backing",
+          "backing"
+        ],
+        "prediction": "Luther denied that the rebels had the right to rebel against the authority of the church.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.19,
+        "gold_position": "end",
+        "num_tokens": 1826,
+        "num_passages": 12
+      },
+      {
+        "question": "What did Baran develop during research at RAND ",
+        "gold_answers": [
+          "the concept of distributed adaptive message block switching",
+          "the concept of distributed adaptive message block switching",
+          "concept of distributed adaptive message block switching"
+        ],
+        "prediction": "Distributed adaptive message block switching",
+        "exact_match": 0,
+        "f1": 0.8333333333333333,
+        "substring_match": 0,
+        "perplexity": 9.51,
+        "gold_position": "middle",
+        "num_tokens": 1708,
+        "num_passages": 11
+      },
+      {
+        "question": "Which comedian did a parody where a Dalek appears?",
+        "gold_answers": [
+          "Spike Milligan",
+          "Spike Milligan",
+          "Spike Milligan"
+        ],
+        "prediction": "Jon Culshaw.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.25,
+        "gold_position": "middle",
+        "num_tokens": 1677,
+        "num_passages": 11
+      },
+      {
+        "question": "What was Tesla afraid someone was trying to do with his invention?",
+        "gold_answers": [
+          "steal the invention",
+          "steal",
+          "steal"
+        ],
+        "prediction": "The thieves, or spies, were trying to steal the invention.",
+        "exact_match": 0,
+        "f1": 0.4,
+        "substring_match": 1,
+        "perplexity": 9.66,
+        "gold_position": "middle",
+        "num_tokens": 1698,
+        "num_passages": 11
+      },
+      {
+        "question": "What usually takes reenergized electrons?",
+        "gold_answers": [
+          "NADP+",
+          "photosystem I",
+          "NADP+"
+        ],
+        "prediction": "NADP+",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.81,
+        "gold_position": "end",
+        "num_tokens": 1821,
+        "num_passages": 11
+      },
+      {
+        "question": "Who was Louis XIV's main rival?",
+        "gold_answers": [
+          "William III of Orange",
+          "Stadtholder William III of Orange",
+          "Stadtholder William III of Orange"
+        ],
+        "prediction": "The League of Augsburg was formed by Stadtholder William III of Orange, who emerged as the strongest opponent of king Louis XIV after the French attacked the Dutch Republic in 1672.",
+        "exact_match": 0,
+        "f1": 0.3125,
+        "substring_match": 1,
+        "perplexity": 11.2,
+        "gold_position": "end",
+        "num_tokens": 1679,
+        "num_passages": 10
+      },
+      {
+        "question": "What graphic designer designed the ABC logo in it's most known form?",
+        "gold_answers": [
+          "Paul Rand",
+          "Paul Rand",
+          "Paul Rand"
+        ],
+        "prediction": "Paul Rand",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.85,
+        "gold_position": "middle",
+        "num_tokens": 1714,
+        "num_passages": 10
+      }
+    ],
+    "h2o_0.5": [
+      {
+        "question": "What feature of the Shah's army enable the weary Mongol forces easy early victories?",
+        "gold_answers": [
+          "fragmentation",
+          "fragmentation",
+          "fragmentation"
+        ],
+        "prediction": "The Shah's army was split by diverse internecine feuds and by the Shah's decision to divide his army into small groups concentrated in various cities.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.24,
+        "gold_position": "middle",
+        "num_tokens": 1687,
+        "num_passages": 6
+      },
+      {
+        "question": "What generally does not allow citizens to sue other citizens?",
+        "gold_answers": [
+          "Directives",
+          "Directives",
+          "Directives"
+        ],
+        "prediction": "Directives do not have direct effect.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 10.46,
+        "gold_position": "end",
+        "num_tokens": 1770,
+        "num_passages": 7
+      },
+      {
+        "question": "By which year did full sized American cars shrink to be smaller?",
+        "gold_answers": [
+          "1979",
+          "1979",
+          "1979",
+          "1979",
+          "1979"
+        ],
+        "prediction": "1979",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.87,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 8
+      },
+      {
+        "question": "What is the Mongolian name of the first Mongolian laws codified in writing?",
+        "gold_answers": [
+          "Ikh Zasag",
+          "Ikh Zasag (",
+          "Ikh Zasag"
+        ],
+        "prediction": "Ikh Zasag (Great Administration)",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.66,
+        "gold_position": "end",
+        "num_tokens": 1762,
+        "num_passages": 8
+      },
+      {
+        "question": "What kind of membrane do primary chloroplasts have?",
+        "gold_answers": [
+          "double",
+          "double membrane",
+          "double membrane"
+        ],
+        "prediction": "They have additional membranes outside of the original two membranes.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.52,
+        "gold_position": "middle",
+        "num_tokens": 1690,
+        "num_passages": 9
+      },
+      {
+        "question": "What cultures were part of Kublai's administration?",
+        "gold_answers": [
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists",
+          "Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+          "the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists"
+        ],
+        "prediction": "The bureaucracy created by Kublai Khan reflected various cultures in the empire, including that of the Han Chinese, Khitans, Jurchens, Mongols, and Tibetan Buddhists.",
+        "exact_match": 0,
+        "f1": 0.5517241379310345,
+        "substring_match": 1,
+        "perplexity": 9.39,
+        "gold_position": "middle",
+        "num_tokens": 1663,
+        "num_passages": 9
+      },
+      {
+        "question": "By what process can active immunity be generated in an artificial manner?",
+        "gold_answers": [
+          "vaccination",
+          "vaccination",
+          "vaccination"
+        ],
+        "prediction": "By vaccination.",
+        "exact_match": 0,
+        "f1": 0.6666666666666666,
+        "substring_match": 1,
+        "perplexity": 9.01,
+        "gold_position": "beginning",
+        "num_tokens": 1600,
+        "num_passages": 10
+      },
+      {
+        "question": "By August 2010 how many public schools did Victoria have?",
+        "gold_answers": [
+          "1,548",
+          "1,548",
+          "1,548"
+        ],
+        "prediction": "1,548",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 6.5,
+        "gold_position": "end",
+        "num_tokens": 1727,
+        "num_passages": 10
+      },
+      {
+        "question": "What continent are the Canarian Islands off the coast of?",
+        "gold_answers": [
+          "Africa",
+          "Africa",
+          "Africa"
+        ],
+        "prediction": "The Canarian Islands are located off the coast of Africa.",
+        "exact_match": 0,
+        "f1": 0.2222222222222222,
+        "substring_match": 1,
+        "perplexity": 7.98,
+        "gold_position": "beginning",
+        "num_tokens": 1747,
+        "num_passages": 10
+      },
+      {
+        "question": "What experiences acceleration when external force is applied to a system?",
+        "gold_answers": [
+          "center of mass",
+          "center of mass",
+          "the center of mass",
+          "the center of mass",
+          "the center of mass"
+        ],
+        "prediction": "In a closed system of particles, there is no internal force that is unbalanced. That is, the action-reaction force shared between any two objects in a closed system will not cause the center of mass of the system to accelerate.",
+        "exact_match": 0,
+        "f1": 0.15789473684210528,
+        "substring_match": 1,
+        "perplexity": 8.77,
+        "gold_position": "middle",
+        "num_tokens": 1789,
+        "num_passages": 10
+      },
+      {
+        "question": "What candy company did Edward John Noble own?",
+        "gold_answers": [
+          "Life Savers candy",
+          "Life Savers",
+          "Life Savers"
+        ],
+        "prediction": "Life Savers.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.39,
+        "gold_position": "middle",
+        "num_tokens": 1812,
+        "num_passages": 10
+      },
+      {
+        "question": "How common was the form of corporal punishment in the past?",
+        "gold_answers": [
+          "one of the most common",
+          "one of the most common",
+          "most common",
+          "most common"
+        ],
+        "prediction": "It was common in many Western countries, and some others have now banned it.",
+        "exact_match": 0,
+        "f1": 0.125,
+        "substring_match": 0,
+        "perplexity": 8.42,
+        "gold_position": "beginning",
+        "num_tokens": 1771,
+        "num_passages": 10
+      },
+      {
+        "question": "How are eggs and sperm released?",
+        "gold_answers": [
+          "via pores in the epidermis",
+          "pores in the epidermis",
+          "via pores in the epidermis"
+        ],
+        "prediction": "Fertilization is external in most species, but platyctenids use internal fertilization and keep the eggs in brood chambers until they hatch. Self-fertilization has occasionally been seen in species of the genus",
+        "exact_match": 0,
+        "f1": 0.0625,
+        "substring_match": 0,
+        "perplexity": 9.27,
+        "gold_position": "end",
+        "num_tokens": 1799,
+        "num_passages": 10
+      },
+      {
+        "question": "How many Doctor Who soundtracks have been released since 2005?",
+        "gold_answers": [
+          "Six",
+          "Six",
+          "Six"
+        ],
+        "prediction": "Six.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 8.26,
+        "gold_position": "middle",
+        "num_tokens": 1715,
+        "num_passages": 10
+      },
+      {
+        "question": "Who decides who gets to speak in the chamber debates?",
+        "gold_answers": [
+          "The Presiding Officer",
+          "Presiding Officer",
+          "The Presiding Officer"
+        ],
+        "prediction": "The Presiding Officer (or Deputy Presiding Officer) decides who speaks in chamber debates and the amount of time for which they are allowed to speak.",
+        "exact_match": 0,
+        "f1": 0.16,
+        "substring_match": 1,
+        "perplexity": 9.06,
+        "gold_position": "middle",
+        "num_tokens": 1731,
+        "num_passages": 10
+      },
+      {
+        "question": "What would Mongol armies divert in order to cut off the resources of cities they were attacking?",
+        "gold_answers": [
+          "rivers",
+          "rivers",
+          "rivers"
+        ],
+        "prediction": "They would divert certain rivers, taking enemy prisoners and driving them in front of the army, and adopting new ideas, techniques, and tools from the people they conquered, particularly in employing Muslim and Chinese siege engines and engineers to",
+        "exact_match": 0,
+        "f1": 0.052631578947368425,
+        "substring_match": 1,
+        "perplexity": 9.98,
+        "gold_position": "beginning",
+        "num_tokens": 1667,
+        "num_passages": 10
+      },
+      {
+        "question": "What series is the longest running program in ABC history?",
+        "gold_answers": [
+          "General Hospital",
+          "General Hospital",
+          "General Hospital"
+        ],
+        "prediction": "The longest running entertainment program in the history of ABC television is Good Morning America, which has been on the air since 1975.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.24,
+        "gold_position": "middle",
+        "num_tokens": 1759,
+        "num_passages": 10
+      },
+      {
+        "question": "Which Mongolian word meaning wide-spreading may have contributed to the appellation Genghis?",
+        "gold_answers": [
+          "tenggis",
+          "tenggis",
+          "tenggis"
+        ],
+        "prediction": "Zh\u00e8ng (Chinese: \u6b63) meaning \"right\", \"just\", or \"true\", would have received the Mongolian adjectival modifier -s, creating \"Jenggis\", which in medieval romanization would be",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.45,
+        "gold_position": "middle",
+        "num_tokens": 1585,
+        "num_passages": 10
+      },
+      {
+        "question": "What English law made that country more welcoming to Huguenots?",
+        "gold_answers": [
+          "Foreign Protestants Naturalization Act",
+          "Foreign Protestants Naturalization Act,",
+          "Foreign Protestants Naturalization Act"
+        ],
+        "prediction": "The Foreign Protestants Naturalization Act of 1708.",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.15,
+        "gold_position": "middle",
+        "num_tokens": 1387,
+        "num_passages": 9
+      },
+      {
+        "question": "What is an annual two-day multicultural event held in Newcastle in late August?",
+        "gold_answers": [
+          "Newcastle Mela",
+          "Newcastle Mela",
+          "Newcastle Mela"
+        ],
+        "prediction": "Newcastle Mela.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.9,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 9
+      },
+      {
+        "question": "What is the earliest known movie featuring scenes filmed outdoors in Newcastle?",
+        "gold_answers": [
+          "On the Night of the Fire",
+          "On the Night of the Fire",
+          "On the Night of the Fire (1939),"
+        ],
+        "prediction": "The Clouded Yellow (1951)",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.66,
+        "gold_position": "middle",
+        "num_tokens": 1539,
+        "num_passages": 8
+      },
+      {
+        "question": "When did the V&A acquired the Costiff collection?",
+        "gold_answers": [
+          "2002",
+          "2002",
+          "2002"
+        ],
+        "prediction": "The Costiff collection of 178 Vivienne Westwood costumes was acquired by the V&A in 2002.",
+        "exact_match": 0,
+        "f1": 0.14285714285714288,
+        "substring_match": 1,
+        "perplexity": 12.51,
+        "gold_position": "middle",
+        "num_tokens": 1702,
+        "num_passages": 8
+      },
+      {
+        "question": "Who was Tesla prejudiced against?",
+        "gold_answers": [
+          "overweight people",
+          "overweight people",
+          "overweight people"
+        ],
+        "prediction": "Tesla could be harsh at times and openly expressed disgust for overweight people, such as when he fired a secretary because of her weight.:110 He was quick to criticize clothing; on several occasions, T",
+        "exact_match": 0,
+        "f1": 0.1142857142857143,
+        "substring_match": 1,
+        "perplexity": 10.34,
+        "gold_position": "middle",
+        "num_tokens": 1776,
+        "num_passages": 8
+      },
+      {
+        "question": "Why are chloroplasts of interest in GMO crops?",
+        "gold_answers": [
+          "transgenes in these plastids cannot be disseminated by pollen",
+          "chloroplasts are not inherited from the male parent",
+          "transgenes in these plastids cannot be disseminated by pollen"
+        ],
+        "prediction": "Chloroplasts are responsible for photosynthesis, the process by which plants convert light energy into chemical energy. By developing genetically modified crops, researchers can manipulate the genes that control chloroplast development and function,",
+        "exact_match": 0,
+        "f1": 0.10810810810810811,
+        "substring_match": 0,
+        "perplexity": 10.06,
+        "gold_position": "beginning",
+        "num_tokens": 1707,
+        "num_passages": 7
+      },
+      {
+        "question": "What minimalist composer is also a university graduate?",
+        "gold_answers": [
+          "Philip Glass",
+          "Philip Glass",
+          "Philip Glass"
+        ],
+        "prediction": "Philip Glass",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.42,
+        "gold_position": "middle",
+        "num_tokens": 1763,
+        "num_passages": 8
+      },
+      {
+        "question": "What do chloroplasts do like mitochondria?",
+        "gold_answers": [
+          "generate ATP energy",
+          "use the potential energy stored in an H+",
+          "use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy"
+        ],
+        "prediction": "Chloroplasts use the potential energy stored in an H+, or hydrogen ion gradient to generate ATP energy. They capture light energy to energize electrons taken from water, and release them down an electron transport chain. The molecules between",
+        "exact_match": 0,
+        "f1": 0.5833333333333334,
+        "substring_match": 1,
+        "perplexity": 7.33,
+        "gold_position": "end",
+        "num_tokens": 1626,
+        "num_passages": 7
+      },
+      {
+        "question": "The region spans starting at islands found in which body of water?",
+        "gold_answers": [
+          "Pacific Ocean",
+          "Pacific Ocean",
+          "Pacific Ocean"
+        ],
+        "prediction": "Pacific Ocean islands",
+        "exact_match": 0,
+        "f1": 0.8,
+        "substring_match": 1,
+        "perplexity": 9.14,
+        "gold_position": "middle",
+        "num_tokens": 1615,
+        "num_passages": 7
+      },
+      {
+        "question": "Theories on imperialism use which country as a model?",
+        "gold_answers": [
+          "British",
+          "British",
+          "British",
+          "British"
+        ],
+        "prediction": "Imperialism, the Highest Stage of Capitalism",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.28,
+        "gold_position": "middle",
+        "num_tokens": 1722,
+        "num_passages": 7
+      },
+      {
+        "question": "The term Huguenot was originally meant to confer?",
+        "gold_answers": [
+          "derision",
+          "derision",
+          "derision"
+        ],
+        "prediction": "A derogatory nickname for Swiss republicanism.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 10.54,
+        "gold_position": "end",
+        "num_tokens": 1767,
+        "num_passages": 8
+      },
+      {
+        "question": "What type of group is The Islamic State?",
+        "gold_answers": [
+          "Wahhabi/Salafi jihadist extremist militant",
+          "Wahhabi/Salafi jihadist extremist militant group",
+          "extremist militant"
+        ],
+        "prediction": "A Wahhabi/Salafi jihadist extremist militant group which is led by and mainly composed of Sunni Arabs from Iraq and Syria.",
+        "exact_match": 0,
+        "f1": 0.4166666666666667,
+        "substring_match": 1,
+        "perplexity": 9.91,
+        "gold_position": "middle",
+        "num_tokens": 1760,
+        "num_passages": 9
+      },
+      {
+        "question": "What are three examples of complexity classes associated with definitions established by probabilistic Turing machines?",
+        "gold_answers": [
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP",
+          "BPP, ZPP and RP"
+        ],
+        "prediction": "1. BPP, 2. ZPP, 3. RP",
+        "exact_match": 0,
+        "f1": 0.6,
+        "substring_match": 0,
+        "perplexity": 10.57,
+        "gold_position": "beginning",
+        "num_tokens": 1788,
+        "num_passages": 9
+      },
+      {
+        "question": "When did President Uhuru Kenyatta sign a Security Law Amendment Bill?",
+        "gold_answers": [
+          "December 2014",
+          "December 2014",
+          "December 2014"
+        ],
+        "prediction": "President Uhuru Kenyatta signed the Security Law Amendment Bill on 19 December 2014.",
+        "exact_match": 0,
+        "f1": 0.2857142857142857,
+        "substring_match": 1,
+        "perplexity": 9.46,
+        "gold_position": "end",
+        "num_tokens": 1689,
+        "num_passages": 8
+      },
+      {
+        "question": "When did Martin Luther publish his translation of the New Testament?",
+        "gold_answers": [
+          "1522",
+          "1522",
+          "1522"
+        ],
+        "prediction": "Luther published his German translation of the New Testament in 1522.",
+        "exact_match": 0,
+        "f1": 0.18181818181818182,
+        "substring_match": 1,
+        "perplexity": 10.45,
+        "gold_position": "middle",
+        "num_tokens": 1750,
+        "num_passages": 8
+      },
+      {
+        "question": "What number did early Greeks not regard as a true number?",
+        "gold_answers": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "prediction": "1",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 7.53,
+        "gold_position": "beginning",
+        "num_tokens": 1719,
+        "num_passages": 8
+      },
+      {
+        "question": "What did John Dalton think that all elements were in number present in compounds?",
+        "gold_answers": [
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic",
+          "monatomic"
+        ],
+        "prediction": "All elements were monatomic and had the simplest atomic ratios with respect to one another.",
+        "exact_match": 0,
+        "f1": 0.13333333333333333,
+        "substring_match": 1,
+        "perplexity": 8.27,
+        "gold_position": "middle",
+        "num_tokens": 1802,
+        "num_passages": 9
+      },
+      {
+        "question": "Who took command of French in spring of 1753?",
+        "gold_answers": [
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue",
+          "Paul Marin de la Malgue"
+        ],
+        "prediction": "Paul Marin de la Malgue.",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.19,
+        "gold_position": "end",
+        "num_tokens": 1741,
+        "num_passages": 9
+      },
+      {
+        "question": "What term is used to explain a change in the appearance of Doctor Who?",
+        "gold_answers": [
+          "regeneration",
+          "regeneration",
+          "renewal"
+        ],
+        "prediction": "Regeneration",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 9.16,
+        "gold_position": "beginning",
+        "num_tokens": 1770,
+        "num_passages": 10
+      },
+      {
+        "question": "What is consultant pharmacy mainly concerned with?",
+        "gold_answers": [
+          "medication regimen review",
+          "medication regimen review",
+          "medication regimen review"
+        ],
+        "prediction": "Consultant pharmacy mainly focuses on medication regimen review (i.e. \"cognitive services\") rather than actual dispensing of drugs.",
+        "exact_match": 0,
+        "f1": 0.3,
+        "substring_match": 1,
+        "perplexity": 9.95,
+        "gold_position": "end",
+        "num_tokens": 1724,
+        "num_passages": 10
+      },
+      {
+        "question": "Who created the photographic series titled Animal Locomotion?",
+        "gold_answers": [
+          "Eadweard Muybridge",
+          "Eadweard Muybridge's",
+          "Eadweard Muybridge"
+        ],
+        "prediction": "Eadweard Muybridge's photographs of Animal Locomotion.",
+        "exact_match": 0,
+        "f1": 0.5,
+        "substring_match": 1,
+        "perplexity": 10.0,
+        "gold_position": "middle",
+        "num_tokens": 1809,
+        "num_passages": 11
+      },
+      {
+        "question": "During what period did the Tower Theatre re-open?",
+        "gold_answers": [
+          "late 1970s",
+          "late 1970s",
+          "late 1970s"
+        ],
+        "prediction": "After decades of neglect and suburban flight, the neighborhood revival followed the re-opening of the Tower Theatre in the late 1970s, which at that time showed second and third run movies, along with classic films",
+        "exact_match": 0,
+        "f1": 0.12121212121212122,
+        "substring_match": 1,
+        "perplexity": 9.77,
+        "gold_position": "middle",
+        "num_tokens": 1742,
+        "num_passages": 11
+      },
+      {
+        "question": "where is the Victoria and Albert Museum located?",
+        "gold_answers": [
+          "The V&A is located in the Brompton district of the Royal Borough of Kensington and Chelsea",
+          "London",
+          "London",
+          "in the Brompton district of the Royal Borough of Kensington and Chelsea"
+        ],
+        "prediction": "The Victoria and Albert Museum (often abbreviated as the V&A) is located in the Brompton district of the Royal Borough of Kensington and Chelsea, in an area that has become known as \"Albert",
+        "exact_match": 0,
+        "f1": 0.6341463414634146,
+        "substring_match": 1,
+        "perplexity": 8.74,
+        "gold_position": "beginning",
+        "num_tokens": 1710,
+        "num_passages": 11
+      },
+      {
+        "question": "What South African law recognized two types of schools?",
+        "gold_answers": [
+          "South African Schools Act",
+          "South African Schools Act",
+          "South African Schools Act"
+        ],
+        "prediction": "The private sector has grown ever since. After the abolition of apartheid, the laws governing private education in South Africa changed significantly. The South African Schools Act of 1996 recognised two categories of schools: \"public\"",
+        "exact_match": 0,
+        "f1": 0.2285714285714286,
+        "substring_match": 1,
+        "perplexity": 8.82,
+        "gold_position": "beginning",
+        "num_tokens": 1687,
+        "num_passages": 11
+      },
+      {
+        "question": "Concrete bounding of computation time frequently produces complexity classes contingent upon what?",
+        "gold_answers": [
+          "chosen machine model",
+          "the chosen machine model",
+          "the chosen machine model"
+        ],
+        "prediction": "The choice of machine model.",
+        "exact_match": 0,
+        "f1": 0.5714285714285715,
+        "substring_match": 0,
+        "perplexity": 9.22,
+        "gold_position": "middle",
+        "num_tokens": 1739,
+        "num_passages": 11
+      },
+      {
+        "question": "What did Luther deny the rebels?",
+        "gold_answers": [
+          "backing for the uprising",
+          "backing",
+          "backing"
+        ],
+        "prediction": "Luther denied the rebels' right to use arms against the imperial authorities.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 9.13,
+        "gold_position": "end",
+        "num_tokens": 1826,
+        "num_passages": 12
+      },
+      {
+        "question": "What did Baran develop during research at RAND ",
+        "gold_answers": [
+          "the concept of distributed adaptive message block switching",
+          "the concept of distributed adaptive message block switching",
+          "concept of distributed adaptive message block switching"
+        ],
+        "prediction": "Distributed adaptive message block switching",
+        "exact_match": 0,
+        "f1": 0.8333333333333333,
+        "substring_match": 0,
+        "perplexity": 9.41,
+        "gold_position": "middle",
+        "num_tokens": 1708,
+        "num_passages": 11
+      },
+      {
+        "question": "Which comedian did a parody where a Dalek appears?",
+        "gold_answers": [
+          "Spike Milligan",
+          "Spike Milligan",
+          "Spike Milligan"
+        ],
+        "prediction": "Jon Culshaw.",
+        "exact_match": 0,
+        "f1": 0.0,
+        "substring_match": 0,
+        "perplexity": 8.14,
+        "gold_position": "middle",
+        "num_tokens": 1677,
+        "num_passages": 11
+      },
+      {
+        "question": "What was Tesla afraid someone was trying to do with his invention?",
+        "gold_answers": [
+          "steal the invention",
+          "steal",
+          "steal"
+        ],
+        "prediction": "The thieves or spies were trying to steal the invention.",
+        "exact_match": 0,
+        "f1": 0.4,
+        "substring_match": 1,
+        "perplexity": 9.43,
+        "gold_position": "middle",
+        "num_tokens": 1698,
+        "num_passages": 11
+      },
+      {
+        "question": "What usually takes reenergized electrons?",
+        "gold_answers": [
+          "NADP+",
+          "photosystem I",
+          "NADP+"
+        ],
+        "prediction": "NADP+",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.62,
+        "gold_position": "end",
+        "num_tokens": 1821,
+        "num_passages": 11
+      },
+      {
+        "question": "Who was Louis XIV's main rival?",
+        "gold_answers": [
+          "William III of Orange",
+          "Stadtholder William III of Orange",
+          "Stadtholder William III of Orange"
+        ],
+        "prediction": "The League of Augsburg was formed by Stadtholder William III of Orange, who emerged as the strongest opponent of king Louis XIV after the French attacked the Dutch Republic in 1672.",
+        "exact_match": 0,
+        "f1": 0.3125,
+        "substring_match": 1,
+        "perplexity": 10.91,
+        "gold_position": "end",
+        "num_tokens": 1679,
+        "num_passages": 10
+      },
+      {
+        "question": "What graphic designer designed the ABC logo in it's most known form?",
+        "gold_answers": [
+          "Paul Rand",
+          "Paul Rand",
+          "Paul Rand"
+        ],
+        "prediction": "Paul Rand",
+        "exact_match": 1,
+        "f1": 1.0,
+        "substring_match": 1,
+        "perplexity": 10.54,
+        "gold_position": "middle",
+        "num_tokens": 1714,
+        "num_passages": 10
+      }
+    ]
+  }
+}
