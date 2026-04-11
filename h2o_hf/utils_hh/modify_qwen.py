@@ -102,6 +102,41 @@ except ImportError:
 __all__ = ['convert_kvcache_qwen_heavy_recent', 'QwenAttention_heavy_hitter',
            'Qwen3VLAttention_heavy_hitter']
 
+# FlashInfer support — optional fast attention backend (requires sm75+, i.e. Turing or newer)
+HAS_FLASHINFER = False
+try:
+    import flashinfer
+    if torch.cuda.is_available():
+        major, minor = torch.cuda.get_device_capability()
+        if major > 7 or (major == 7 and minor >= 5):
+            HAS_FLASHINFER = True
+        else:
+            print(f"[H2O] FlashInfer skipped: GPU sm{major}{minor} < sm75 (Turing minimum)")
+    else:
+        HAS_FLASHINFER = True  # defer runtime check
+except ImportError:
+    pass
+
+
+def _flashinfer_attention(query_states, key_states, value_states, causal=True, sm_scale=None):
+    """
+    FlashInfer attention for both prefill and decode. Handles GQA natively
+    so callers should pass the *un-expanded* KV tensors (no repeat_kv).
+
+    Input layout  (standard HF):  (bsz=1, num_heads, seq_len, head_dim)
+    Output layout (standard HF):  (bsz=1, num_heads, q_len,  head_dim)
+    """
+    # HF BNHD → FlashInfer NHD  (squeeze batch, swap seq/head axes)
+    q = query_states.squeeze(0).transpose(0, 1).contiguous()
+    k = key_states.squeeze(0).transpose(0, 1).contiguous()
+    v = value_states.squeeze(0).transpose(0, 1).contiguous()
+
+    o = flashinfer.single_prefill_with_kv_cache(
+        q, k, v, causal=causal, sm_scale=sm_scale, kv_layout="NHD",
+    )
+
+    return o.transpose(0, 1).unsqueeze(0)
+
 
 def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
     batch, num_key_value_heads, slen, head_dim = hidden_states.shape
@@ -206,11 +241,7 @@ class QwenAttention_heavy_hitter(nn.Module):
                 key_states, value_states, self.layer_idx, cache_kwargs
             )
 
-        # Repeat KV for GQA (like original)
-        key_states_expanded = repeat_kv(key_states, self.num_key_value_groups)
-        value_states_expanded = repeat_kv(value_states, self.num_key_value_groups)
-
-        kv_seq_len = key_states_expanded.shape[-2]
+        kv_seq_len = key_states.shape[-2]
 
         # H2O only activates during autoregressive generation (q_len==1) to avoid
         # numerical divergence from SDPA during prefill
@@ -219,27 +250,40 @@ class QwenAttention_heavy_hitter(nn.Module):
         h2o_should_track = (q_len == 1 and kv_seq_len >= self.min_seq_for_eviction)
 
         if not h2o_active and not h2o_should_track:
-            # Use SDPA for numerical stability (matches original exactly)
-            causal_mask = attention_mask
-            if attention_mask is not None:
-                causal_mask = attention_mask[:, :, :, :kv_seq_len]
+            if HAS_FLASHINFER and bsz == 1 and query_states.is_cuda:
+                # FlashInfer handles GQA natively — no repeat_kv needed
+                attn_output = _flashinfer_attention(
+                    query_states, key_states, value_states,
+                    causal=True, sm_scale=self.scaling,
+                )
+            else:
+                # Fallback: SDPA with explicit GQA expansion
+                key_states_expanded = repeat_kv(key_states, self.num_key_value_groups)
+                value_states_expanded = repeat_kv(value_states, self.num_key_value_groups)
 
-            if query_states.device.type == "cuda" and causal_mask is not None:
-                query_states = query_states.contiguous()
-                key_states_expanded = key_states_expanded.contiguous()
-                value_states_expanded = value_states_expanded.contiguous()
+                causal_mask = attention_mask
+                if attention_mask is not None:
+                    causal_mask = attention_mask[:, :, :, :kv_seq_len]
 
-            is_causal = True if causal_mask is None and q_len > 1 else False
+                if query_states.device.type == "cuda" and causal_mask is not None:
+                    query_states = query_states.contiguous()
+                    key_states_expanded = key_states_expanded.contiguous()
+                    value_states_expanded = value_states_expanded.contiguous()
 
-            attn_output = F.scaled_dot_product_attention(
-                query_states, key_states_expanded, value_states_expanded,
-                attn_mask=causal_mask,
-                dropout_p=self.attention_dropout if self.training else 0.0,
-                is_causal=is_causal,
-            )
+                is_causal = True if causal_mask is None and q_len > 1 else False
+
+                attn_output = F.scaled_dot_product_attention(
+                    query_states, key_states_expanded, value_states_expanded,
+                    attn_mask=causal_mask,
+                    dropout_p=self.attention_dropout if self.training else 0.0,
+                    is_causal=is_causal,
+                )
             attn_weights = None
         else:
-            # Manual attention for H2O score tracking and masking
+            # Manual attention for H2O score tracking — needs GQA-expanded KV
+            key_states_expanded = repeat_kv(key_states, self.num_key_value_groups)
+            value_states_expanded = repeat_kv(value_states, self.num_key_value_groups)
+
             attn_weights = torch.matmul(
                 query_states.float(), key_states_expanded.float().transpose(2, 3)
             ) * self.scaling
@@ -400,15 +444,52 @@ class Qwen3VLAttention_heavy_hitter(nn.Module):
             self._reset_masks()
 
         if q_len > 1:
-            # PREFILL: delegate entirely to original (bit-identical to baseline)
-            result = self.original_attn(
-                hidden_states=hidden_states,
-                position_embeddings=position_embeddings,
-                attention_mask=attention_mask,
-                past_key_values=past_key_values,
-                cache_position=cache_position,
-                **kwargs,
-            )
+            if HAS_FLASHINFER and bsz == 1 and hidden_states.is_cuda:
+                # FlashInfer prefill — replicate QKV path, swap attention kernel
+                cos, sin = position_embeddings
+                hidden_shape = (bsz, q_len, -1, self.head_dim)
+
+                query_states = self.original_attn.q_norm(
+                    self.original_attn.q_proj(hidden_states).view(hidden_shape)
+                ).transpose(1, 2)
+                key_states = self.original_attn.k_norm(
+                    self.original_attn.k_proj(hidden_states).view(hidden_shape)
+                ).transpose(1, 2)
+                value_states = (
+                    self.original_attn.v_proj(hidden_states)
+                    .view(hidden_shape).transpose(1, 2)
+                )
+
+                if apply_rotary_pos_emb_qwen3vl is not None:
+                    query_states, key_states = apply_rotary_pos_emb_qwen3vl(
+                        query_states, key_states, cos, sin)
+
+                if past_key_values is not None:
+                    cache_kwargs = {
+                        "sin": sin, "cos": cos, "cache_position": cache_position,
+                    }
+                    key_states, value_states = past_key_values.update(
+                        key_states, value_states, self.layer_idx, cache_kwargs)
+
+                attn_output = _flashinfer_attention(
+                    query_states, key_states, value_states,
+                    causal=True, sm_scale=self.scaling,
+                )
+                attn_output = attn_output.transpose(1, 2).contiguous()
+                attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
+                attn_output = self.original_attn.o_proj(attn_output)
+                result = (attn_output, None)
+            else:
+                # Fallback: delegate to original attention
+                result = self.original_attn(
+                    hidden_states=hidden_states,
+                    position_embeddings=position_embeddings,
+                    attention_mask=attention_mask,
+                    past_key_values=past_key_values,
+                    cache_position=cache_position,
+                    **kwargs,
+                )
+
             # Set H2O budgets from the KV length after prefill
             if self.heavy_budget is None and past_key_values is not None:
                 try:
@@ -601,6 +682,10 @@ def convert_kvcache_qwen_heavy_recent(model, config):
 
     convert_recursive(model)
     print(f"\nReplaced {replaced_count} attention layers")
+    if HAS_FLASHINFER:
+        print(f"FlashInfer: ENABLED (prefill + non-H2O decode use FlashInfer kernels)")
+    else:
+        print(f"FlashInfer: not available (using PyTorch SDPA fallback)")
     print("=== H2O Conversion Complete ===\n")
 
     return model

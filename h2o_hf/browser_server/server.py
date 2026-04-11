@@ -1,31 +1,24 @@
 """
-H2O Browser Agent Server — drop-in replacement for the vLLM server.
+FlashInfer Browser Agent Server — drop-in replacement for the vLLM server.
 
 Serves an OpenAI-compatible /v1/chat/completions endpoint on port 8001
 (same port as the existing vLLM setup).  browser-use scripts need zero changes —
 just point VLLM_URL at this server instead of vLLM.
 
-Key difference from vLLM:
+Key features:
   - KV cache is kept alive across turns (stateful session)
-  - H2O eviction runs after every turn, keeping cache memory bounded
+  - FlashInfer fused kernels for both prefill and decode attention
+  - GQA handled natively by FlashInfer (no repeat_kv overhead)
   - New turns only prefill NEW messages, not the full history
 
 Usage:
-    # Stop vLLM first (frees GPUs)
-    kill $(pgrep -f "vllm serve")
-
-    # Install deps if needed
-    pip install fastapi uvicorn
-
-    # Start this server (same port as vLLM)
     cd /home/shroy/git/H2O/h2o_hf
     python browser_server/server.py \\
-        --model_name Qwen/Qwen3-VL-2B-Instruct \\
-        --heavy_ratio 0.1 --recent_ratio 0.1 \\
+        --model_name Qwen/Qwen3-VL-4B-Instruct \\
         --port 8001
 
     # Run browser agent unchanged
-    VLLM_URL=http://0.0.0.0:8001/v1 MODEL_NAME=Qwen/Qwen3-VL-2B-Instruct \\
+    VLLM_URL=http://0.0.0.0:8001/v1 MODEL_NAME=Qwen/Qwen3-VL-4B-Instruct \\
         python /home/shroy/vllm_work/BrowserUseScript/agent_browse.py
 """
 
@@ -38,11 +31,12 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from inference import StatefulH2OInference
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from inference import StatefulFlashInferInference
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +69,7 @@ class Message(BaseModel):
         return {"role": self.role, "content": parts}
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "h2o"
+    model: str = "flashinfer"
     messages: list[Message]
     max_tokens: Optional[int] = None
     max_completion_tokens: Optional[int] = None
@@ -87,8 +81,8 @@ class ChatCompletionRequest(BaseModel):
 # App setup
 # ---------------------------------------------------------------------------
 
-app = FastAPI(title="H2O Browser Server")
-inference: StatefulH2OInference = None   # populated at startup
+app = FastAPI(title="FlashInfer Browser Server")
+inference = None
 session_lock = asyncio.Lock()
 
 
@@ -102,10 +96,10 @@ async def list_models():
     return {
         "object": "list",
         "data": [{
-            "id": inference.model_name if inference else "h2o",
+            "id": inference.model_name if inference else "flashinfer",
             "object": "model",
             "created": int(time.time()),
-            "owned_by": "h2o",
+            "owned_by": "flashinfer",
         }]
     }
 
@@ -120,18 +114,15 @@ async def chat_completions(request: ChatCompletionRequest):
         raise HTTPException(status_code=503, detail="Model not loaded yet")
 
     if request.stream:
-        # Streaming not yet implemented — fall back to non-streaming
-        # browser-use works fine without streaming
         pass
 
     messages_dicts = [m.to_dict() for m in request.messages]
     max_new_tokens = (request.max_completion_tokens
                       or request.max_tokens
-                      or 512)
+                      or 4096)
 
     async with session_lock:
         loop = asyncio.get_event_loop()
-        # Run blocking inference in a thread so the event loop stays responsive
         response_text = await loop.run_in_executor(
             None,
             inference.chat,
@@ -140,8 +131,8 @@ async def chat_completions(request: ChatCompletionRequest):
         )
 
     completion_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
-    prompt_tokens   = inference.session.virtual_position
-    completion_tokens = len(response_text.split())  # rough estimate
+    prompt_tokens = getattr(inference.session, "virtual_position", 0)
+    completion_tokens = len(response_text.split())
 
     return JSONResponse({
         "id": completion_id,
@@ -193,38 +184,32 @@ async def health():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="H2O Stateful Browser Agent Server (drop-in vLLM replacement)")
+        description="FlashInfer Stateful Browser Agent Server (drop-in vLLM replacement)")
     parser.add_argument("--model_name", type=str,
-                        default="Qwen/Qwen3-VL-2B-Instruct",
+                        default="Qwen/Qwen3-VL-4B-Instruct",
                         help="HuggingFace model ID")
-    parser.add_argument("--heavy_ratio", type=float, default=0.1,
-                        help="H2O heavy-hitter keep ratio (0.1 = keep top 10%%)")
-    parser.add_argument("--recent_ratio", type=float, default=0.1,
-                        help="H2O recent-token keep ratio")
-    parser.add_argument("--min_seq_for_eviction", type=int, default=500,
-                        help="H2O only activates when KV length >= this")
     parser.add_argument("--max_pixels", type=int, default=1280 * 1280,
-                        help="Max pixels for image tiling (browser screenshots are large)")
-    parser.add_argument("--max_new_tokens", type=int, default=512,
-                        help="Default max generation tokens per turn")
+                        help="Max pixels for image tiling (browser screenshots)")
+    parser.add_argument("--device_map", type=str, default="auto",
+                        help="Device map for model loading (default: auto)")
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8001,
                         help="Port (default 8001 matches existing vLLM setup)")
     args = parser.parse_args()
 
     global inference
-    inference = StatefulH2OInference(
+    inference = StatefulFlashInferInference(
         model_name=args.model_name,
-        heavy_ratio=args.heavy_ratio,
-        recent_ratio=args.recent_ratio,
-        min_seq_for_eviction=args.min_seq_for_eviction,
         max_pixels=args.max_pixels,
+        device_map=args.device_map,
     )
 
-    print(f"\n[H2O Server] Listening on {args.host}:{args.port}", flush=True)
-    print(f"[H2O Server] Drop-in replacement for vLLM — same port, same API", flush=True)
-    print(f"[H2O Server] Set VLLM_URL=http://{args.host}:{args.port}/v1 in your agent\n",
+    print(f"\n[FlashInfer Server] Backend: FlashInfer (fused attention)", flush=True)
+    print(f"[FlashInfer Server] Listening on {args.host}:{args.port}", flush=True)
+    print(f"[FlashInfer Server] Drop-in replacement for vLLM — same port, same API",
           flush=True)
+    print(f"[FlashInfer Server] Set VLLM_URL=http://{args.host}:{args.port}/v1 "
+          f"in your agent\n", flush=True)
 
     uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
