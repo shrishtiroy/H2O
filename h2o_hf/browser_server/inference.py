@@ -149,7 +149,8 @@ class StatefulFlashInferInference:
         # --- Build multimodal inputs for new messages only ---
         vision_messages = self._build_vision_messages(new_messages)
         text = self.processor.apply_chat_template(
-            vision_messages, tokenize=False, add_generation_prompt=True)
+            vision_messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False)
         image_inputs, video_inputs = process_vision_info(vision_messages)
         inputs = self.processor(
             text=[text],
@@ -292,8 +293,13 @@ class StatefulFlashInferInference:
         answer_ids = generated_ids
         if think_end_id is not None and think_end_id in generated_ids:
             idx = generated_ids.index(think_end_id)
-            answer_ids = generated_ids[idx + 1:]
-            print(f"[FI] Stripped thinking block ({idx + 1} tokens)", flush=True)
+            candidate = generated_ids[idx + 1:]
+            candidate_text = tok.decode(candidate, skip_special_tokens=True).strip()
+            if candidate_text:
+                answer_ids = candidate
+                print(f"[FI] Stripped thinking block ({idx + 1} tokens)", flush=True)
+            else:
+                print(f"[FI] Think block covered entire response — keeping full output", flush=True)
 
         response = tok.decode(answer_ids, skip_special_tokens=True).strip()
         return response
