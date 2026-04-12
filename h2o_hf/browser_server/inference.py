@@ -182,7 +182,6 @@ class StatefulFlashInferInference:
             )
 
         self.session.virtual_position += new_token_count
-        self.session.processed_turns = n
 
         next_logits = prefill_out.logits[:, -1, :]
         next_token = next_logits.argmax(dim=-1, keepdim=True)
@@ -214,6 +213,16 @@ class StatefulFlashInferInference:
             self.session.virtual_position += 1
             next_token = step_out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
 
+        # --- Close the assistant turn in the KV cache ---
+        # The decode loop breaks BEFORE feeding EOS through the model, so
+        # the KV cache is missing <|im_end|>\n that closes the assistant turn.
+        # Feed those tokens now so the next incremental prefill aligns correctly.
+        self._close_assistant_turn_in_cache(next_token.device)
+
+        # n + 1: account for the assistant response we just generated so the
+        # next call only prefills truly new user messages.
+        self.session.processed_turns = n + 1
+
         response = self._decode_stripping_think_block(generated_ids)
 
         print(f"[FI] Generated {len(generated_ids)} tokens. "
@@ -238,6 +247,34 @@ class StatefulFlashInferInference:
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _close_assistant_turn_in_cache(self, device):
+        """
+        Feed ``<|im_end|>\\n`` into the KV cache to properly close the
+        assistant turn.  The decode loop stops on EOS *before* its forward
+        pass, so the closing token is missing from the cache.  We also need
+        the ``\\n`` that Qwen's chat template places between messages.
+        """
+        tok = self.processor.tokenizer
+        im_end_id = tok.convert_tokens_to_ids("<|im_end|>")
+        nl_ids = tok.encode("\n", add_special_tokens=False)
+        closing_ids = [im_end_id] + nl_ids
+
+        closing_tensor = torch.tensor([closing_ids], device=device)
+        cache_pos = torch.arange(
+            self.session.virtual_position,
+            self.session.virtual_position + len(closing_ids),
+            device=device,
+        )
+        with torch.no_grad():
+            self.model(
+                input_ids=closing_tensor,
+                past_key_values=self.session.kv_cache,
+                cache_position=cache_pos,
+                use_cache=True,
+                return_dict=True,
+            )
+        self.session.virtual_position += len(closing_ids)
 
     def _physical_cache_size(self) -> int:
         if self.session.kv_cache is None:
