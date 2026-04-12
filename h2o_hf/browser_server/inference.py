@@ -128,8 +128,7 @@ class StatefulFlashInferInference:
     # Public API
     # ------------------------------------------------------------------
 
-    def chat(self, messages: list[dict], max_new_tokens: int = 4096,
-             temperature: float = 0.0) -> str:
+    def chat(self, messages: list[dict], max_new_tokens: int = 4096) -> str:
         """
         Process a browser-agent turn.  `messages` is the FULL conversation history
         (OpenAI format with optional multimodal content).
@@ -155,8 +154,7 @@ class StatefulFlashInferInference:
         print(f"[FI] Turn {self.session.processed_turns // 2 + 1}: "
               f"processing {len(new_messages)} new messages "
               f"(cache={self._physical_cache_size()} tokens, "
-              f"vpos={self.session.virtual_position}, "
-              f"temp={temperature})", flush=True)
+              f"vpos={self.session.virtual_position})", flush=True)
 
         # --- Build multimodal inputs for new messages only ---
         vision_messages = self._build_vision_messages(new_messages)
@@ -198,7 +196,7 @@ class StatefulFlashInferInference:
         self.session.virtual_position += new_token_count
 
         next_logits = prefill_out.logits[:, -1, :]
-        next_token = self._sample(next_logits, temperature)
+        next_token = next_logits.argmax(dim=-1, keepdim=True)
 
         # --- Generate response token-by-token ---
         generated_ids = []
@@ -225,7 +223,7 @@ class StatefulFlashInferInference:
                 )
 
             self.session.virtual_position += 1
-            next_token = self._sample(step_out.logits[:, -1, :], temperature)
+            next_token = step_out.logits[:, -1, :].argmax(dim=-1, keepdim=True)
 
         # --- Close the assistant turn in the KV cache ---
         # The decode loop breaks BEFORE feeding EOS through the model, so
@@ -261,14 +259,6 @@ class StatefulFlashInferInference:
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
-
-    @staticmethod
-    def _sample(logits: torch.Tensor, temperature: float) -> torch.Tensor:
-        """Sample next token: greedy if temperature<=0, else multinomial."""
-        if temperature <= 0:
-            return logits.argmax(dim=-1, keepdim=True)
-        probs = torch.softmax(logits / temperature, dim=-1)
-        return torch.multinomial(probs, num_samples=1)
 
     def _close_assistant_turn_in_cache(self, device):
         """
