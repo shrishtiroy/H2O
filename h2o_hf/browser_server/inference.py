@@ -155,7 +155,8 @@ class StatefulFlashInferInference:
         print(f"[FI] Turn {self.session.processed_turns // 2 + 1}: "
               f"processing {len(new_messages)} new messages "
               f"(cache={self._physical_cache_size()} tokens, "
-              f"vpos={self.session.virtual_position})", flush=True)
+              f"vpos={self.session.virtual_position}, "
+              f"temp={temperature})", flush=True)
 
         # --- Build multimodal inputs for new messages only ---
         vision_messages = self._build_vision_messages(new_messages)
