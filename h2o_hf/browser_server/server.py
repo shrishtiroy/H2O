@@ -121,6 +121,8 @@ async def chat_completions(request: ChatCompletionRequest):
                       or request.max_tokens
                       or 4096)
 
+    temperature = request.temperature or 0.0
+
     async with session_lock:
         loop = asyncio.get_event_loop()
         response_text = await loop.run_in_executor(
@@ -128,6 +130,7 @@ async def chat_completions(request: ChatCompletionRequest):
             inference.chat,
             messages_dicts,
             max_new_tokens,
+            temperature,
         )
 
     completion_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
