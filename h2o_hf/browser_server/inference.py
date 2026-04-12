@@ -95,18 +95,28 @@ class StatefulFlashInferInference:
         model_name: str = "Qwen/Qwen3-VL-4B-Instruct",
         max_pixels: int = 1280 * 1280,
         device_map: str = "auto",
+        load_in_4bit: bool = False,
     ):
         self.model_name = model_name
         self.max_pixels = max_pixels
 
-        print(f"[FlashInfer Server] Loading {model_name}...", flush=True)
+        print(f"[FlashInfer Server] Loading {model_name}"
+              f"{' (4-bit quantized)' if load_in_4bit else ''}...", flush=True)
 
         ModelClass = _get_model_class(model_name)
-        self.model = ModelClass.from_pretrained(
-            model_name,
-            dtype=torch.float16,
-            device_map=device_map,
-        )
+
+        load_kwargs = dict(device_map=device_map)
+        if load_in_4bit:
+            from transformers import BitsAndBytesConfig
+            load_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_quant_type="nf4",
+            )
+        else:
+            load_kwargs["dtype"] = torch.float16
+
+        self.model = ModelClass.from_pretrained(model_name, **load_kwargs)
         self.model = convert_attention_to_flashinfer(self.model)
         self.model.eval()
 

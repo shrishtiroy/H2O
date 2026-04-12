@@ -192,6 +192,8 @@ def main():
                         help="Max pixels for image tiling (browser screenshots)")
     parser.add_argument("--device_map", type=str, default="auto",
                         help="Device map for model loading (default: auto)")
+    parser.add_argument("--load_in_4bit", action="store_true",
+                        help="Load model with 4-bit quantization (fits 7-8B on 16GB)")
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8001,
                         help="Port (default 8001 matches existing vLLM setup)")
@@ -202,6 +204,7 @@ def main():
         model_name=args.model_name,
         max_pixels=args.max_pixels,
         device_map=args.device_map,
+        load_in_4bit=args.load_in_4bit,
     )
 
     print(f"\n[FlashInfer Server] Backend: FlashInfer (fused attention)", flush=True)
