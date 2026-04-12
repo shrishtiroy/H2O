@@ -197,11 +197,31 @@ class StatefulFlashInferInference:
 
         self.session.virtual_position += new_token_count
 
-        next_logits = prefill_out.logits[:, -1, :]
-        next_token = self._sample(next_logits, temperature)
+        # --- Force the start of the JSON schema so the model follows it ---
+        generated_ids = []
+        prefix_text = '{"current_state":{'
+        prefix_ids = self.processor.tokenizer.encode(
+            prefix_text, add_special_tokens=False)
+
+        device = inputs["input_ids"].device
+        for pid in prefix_ids:
+            generated_ids.append(pid)
+            pid_tensor = torch.tensor([[pid]], device=device)
+            cache_pos = torch.tensor(
+                [self.session.virtual_position], device=device)
+            with torch.no_grad():
+                step_out = self.model(
+                    input_ids=pid_tensor,
+                    past_key_values=self.session.kv_cache,
+                    cache_position=cache_pos,
+                    use_cache=True,
+                    return_dict=True,
+                )
+            self.session.virtual_position += 1
+
+        next_token = self._sample(step_out.logits[:, -1, :], temperature)
 
         # --- Generate response token-by-token ---
-        generated_ids = []
         eos_ids = self._get_eos_token_ids()
 
         for _ in range(max_new_tokens):
