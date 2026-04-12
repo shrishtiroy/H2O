@@ -199,7 +199,7 @@ class StatefulFlashInferInference:
 
         # --- Force the start of the JSON schema so the model follows it ---
         generated_ids = []
-        prefix_text = '{"current_state":{'
+        prefix_text = '{"current_state":{"evaluation_previous_goal":"'
         prefix_ids = self.processor.tokenizer.encode(
             prefix_text, add_special_tokens=False)
 
