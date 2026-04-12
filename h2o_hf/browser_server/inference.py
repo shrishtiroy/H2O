@@ -158,9 +158,11 @@ class StatefulFlashInferInference:
 
         # --- Build multimodal inputs for new messages only ---
         vision_messages = self._build_vision_messages(new_messages)
+        template_kwargs = dict(tokenize=False, add_generation_prompt=True)
+        if "qwen3" in self.model_name.lower():
+            template_kwargs["enable_thinking"] = False
         text = self.processor.apply_chat_template(
-            vision_messages, tokenize=False, add_generation_prompt=True,
-            enable_thinking=False)
+            vision_messages, **template_kwargs)
         image_inputs, video_inputs = process_vision_info(vision_messages)
         inputs = self.processor(
             text=[text],
