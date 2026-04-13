@@ -24,6 +24,7 @@ Usage:
 
 import argparse
 import asyncio
+import json
 import time
 import uuid
 
@@ -31,7 +32,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -74,7 +75,9 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: Optional[int] = None
     max_completion_tokens: Optional[int] = None
     temperature: Optional[float] = 0.0
+    frequency_penalty: Optional[float] = None
     stream: Optional[bool] = False
+    response_format: Optional[dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +87,54 @@ class ChatCompletionRequest(BaseModel):
 app = FastAPI(title="FlashInfer Browser Server")
 inference = None
 session_lock = asyncio.Lock()
+
+
+# ---------------------------------------------------------------------------
+# Schema injection — emulates OpenAI structured output for local models
+# ---------------------------------------------------------------------------
+
+def _inject_schema_into_messages(messages: list[dict], response_format: dict) -> None:
+    """
+    When browser-use sends response_format with a JSON Schema, inject it into
+    the system prompt so the model knows exactly what structure to produce.
+    OpenAI/vLLM use this for constrained decoding; we approximate it by making
+    the schema explicit in the prompt.
+    """
+    schema = response_format.get("json_schema", {}).get("schema")
+    if not schema:
+        return
+
+    required = schema.get("required", [])
+    props = schema.get("properties", {})
+    field_descriptions = []
+    for name in required:
+        prop = props.get(name, {})
+        ptype = prop.get("type", "unknown")
+        field_descriptions.append(f'  - "{name}": ({ptype}) REQUIRED')
+
+    schema_instruction = (
+        "\n\n<CRITICAL_OUTPUT_FORMAT>\n"
+        "You MUST respond with ONLY a valid JSON object containing these required fields:\n"
+        + "\n".join(field_descriptions) + "\n"
+        "The \"action\" field must be a non-empty list of action objects.\n"
+        "Do NOT wrap your response in markdown. Do NOT add any text outside the JSON.\n"
+        "Do NOT output only a \"thinking\" field — you MUST include ALL required fields.\n"
+        "</CRITICAL_OUTPUT_FORMAT>"
+    )
+
+    for msg in messages:
+        if msg.get("role") == "system":
+            content = msg.get("content", "")
+            if isinstance(content, str):
+                msg["content"] = content + schema_instruction
+            elif isinstance(content, list):
+                msg["content"] = content + [{"type": "text", "text": schema_instruction}]
+            print(f"[FI] Injected JSON schema into system prompt "
+                  f"(required fields: {required})", flush=True)
+            return
+
+    messages.insert(0, {"role": "system", "content": schema_instruction.strip()})
+    print(f"[FI] Added schema system message (required fields: {required})", flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +171,10 @@ async def chat_completions(request: ChatCompletionRequest):
     max_new_tokens = (request.max_completion_tokens
                       or request.max_tokens
                       or 4096)
+    temperature = request.temperature or 0.0
+
+    if request.response_format:
+        _inject_schema_into_messages(messages_dicts, request.response_format)
 
     async with session_lock:
         loop = asyncio.get_event_loop()
@@ -128,6 +183,7 @@ async def chat_completions(request: ChatCompletionRequest):
             inference.chat,
             messages_dicts,
             max_new_tokens,
+            temperature,
         )
 
     completion_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
